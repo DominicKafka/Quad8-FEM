@@ -14,6 +14,18 @@ function plotelements(coordinates, color, alpha, linestyle)
     end
 end
 
+function [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress)
+if ~manual
+    maxstress = max(max(stress));
+    minstress = min(min(stress));
+end
+if(maxstress-minstress<2e-6)
+    maxstress = maxstress + 1e-6;
+    minstress = minstress - 1e-6;
+end
+caxis([minstress maxstress]);
+end
+
 %Graphical output
 dpm=[U(1:2:2*nnodes) U(2:2:2*nnodes)];
 
@@ -26,6 +38,8 @@ disp('Please be patient in the case of large meshes. It may take a few seconds .
 
 choice = 0;
 manual = 0;
+maxstress = inf;
+minstress = 0;
 while choice ~= 12
     choice = menu('Plot options','Undeformed shape','Deformed shape', ...
         'Overlay','S11 contour','S22 contour','S12 contour', ...
@@ -37,6 +51,7 @@ while choice ~= 12
         clf
         hold on
     end
+    
     if choice == 1
         plotelements(coor, 'b', 0.8, '-');
         title('Undeformed shape')
@@ -56,80 +71,40 @@ while choice ~= 12
         end
         title('Deformed over undeformed shape')
     elseif choice == 4
-        if manual==0
-            maxstress = max(max(StressNode(:,[2 5 8 11])));
-            minstress = min(min(StressNode(:,[2 5 8 11])));
-        end
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
+        stress = StressNode(:,[2 5 8 11]);
         plotelements(dcoor, StressNode(:, [2, 5, 8, 11]), 1, 'none')
-        caxis([minstress maxstress]);
-%        colorbar('horiz')
-         colorbar('vert')
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
+        colorbar('horiz')
         %title('Contour plot: \sigma_{11}')
     elseif choice==5
-        if manual == 0
-            maxstress = max(max(StressNode(:,[3 6 9 12])));
-            minstress = min(min(StressNode(:,[3 6 9 12])));
-        end
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
-        plotelements(dcoor, StressNode(:, [3, 6, 9, 12]), 1, 'none');
-        caxis([minstress maxstress]);
+        stress = StressNode(:, [3, 6, 9, 12]);
+        plotelements(dcoor, stress, 1, 'none');
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
         colorbar('horiz')
         title('Contour plot: \sigma_{22}')
     elseif choice==6
-        if manual == 0
-            maxstress = max(max(StressNode(:,[4 7 10 13])));
-            minstress = min(min(StressNode(:,[4 7 10 13])));
-        end
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
-        plotelements(dcoor, StressNode(:, [4, 7, 10, 13]), 1, 'none');
-        caxis([minstress maxstress]);
+        stress = StressNode(:, [4, 7, 10, 13]);
+        plotelements(dcoor, stress, 1, 'none');
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
         colorbar('horiz')
         title('Contour plot: \sigma_{12}')
     elseif choice==7
-        if manual == 0
-            maxstress = max(max(VonMises(:,:)));
-            minstress = min(min(VonMises(:,:)));
-        end
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
-        plotelements(dcoor, VonMises, 1, 'none');
-        caxis([minstress maxstress]);
+        stress = VonMises;
+        plotelements(dcoor, stress, 1, 'none');
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
         colorbar('horiz')
         title('Contour plot: Von Mises')
     elseif choice==8
-        if manual == 0
-            maxstress = max(max(Tresca(:,:)));
-            minstress = min(min(Tresca(:,:)));
-        end
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
-        plotelements(dcoor, Tresca, 1, 'none');
-        caxis([minstress maxstress]);
+        stress = Tresca;
+        plotelements(dcoor, stress, 1, 'none');
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
         colorbar('horiz')
         title('Contour plot: Tresca')
     elseif choice == 9
         manual = 1;
         minstress = input('Minimum contour level ? ');
         maxstress = input('Maximum contour level ? ');
-        if(maxstress-minstress<2e-6)
-            maxstress = maxstress + 1e-6;
-            minstress = minstress - 1e-6;
-        end
-        caxis([minstress maxstress]);
+        [maxstress, minstress] = calcrange(manual, stress, maxstress, minstress);
         %colorbar('horiz')
         colorbar('vert')
         figure(1)
