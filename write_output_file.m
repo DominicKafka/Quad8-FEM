@@ -1,4 +1,4 @@
-function [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,ndispl,Pb,plane,pois,elas,nnodes,nodes,nelem,elnodes,stress,strain)
+function [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,ndispl,Pb,plane,pois,nnodes,nodes,nelem,elnodes,stress,strain)
 
 Uoutput = zeros(nnodes,3);
 Uoutput(:,1) = nodes;
@@ -90,7 +90,7 @@ SupReac = zeros(ndispl,3);
 SupReac(:,1:2) = displ(:,1:2);
 SupReac(:,3) = Pb;
 
-fid = fopen([file_out],'w');
+fid = fopen(file_out,'w');
 fprintf(fid,'OUTPUT OF MATLAB Q4 SMALL STRAIN FEM IMPLEMENTATION \n');
 fprintf(fid,'\n');
 fprintf(fid,'          DISPLACEMENTS \n');

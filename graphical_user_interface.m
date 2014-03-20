@@ -3,27 +3,13 @@ function graphical_user_interface(nnodes,coor,nelem,elnodes,StressNode,...
 
 %Graphical output
 dpm=[U(1:2:2*nnodes) U(2:2:2*nnodes)];
-maxdispx = max(dpm(:,1));
-mindispx = min(dpm(:,1));
-maxdispy = max(dpm(:,2));
-mindispy = min(dpm(:,2));
-maxcoordx = max(coor(:,1));
-mincoordx = min(coor(:,1));
-maxcoordy = max(coor(:,2));
-mincoordy = min(coor(:,2));
-
-magfacx = 0.1*(maxcoordx-mincoordx)/(maxdispx-mindispx);
-magfacy = 0.1*(maxcoordy-mincoordy)/(maxdispy-mindispy);
 
 magfac = 1;
 
 dcoor = coor + magfac.*dpm;
 
 disp('Click on an option in the plot menu window.')
-disp(['Please be patient in the case of large meshes. It may take a few seconds .......'])
-
-fac1 = 1;
-fac2 = 1;
+disp('Please be patient in the case of large meshes. It may take a few seconds .......')
 
 choice = 0;
 manual = 0;
@@ -198,8 +184,6 @@ while choice ~= 12
         colorbar('horiz')
         title('Contour plot: Tresca')
     elseif choice == 9
-        oldmin = minstress;
-        oldmax = maxstress;
         manual = 1;
         minstress = input('Minimum contour level ? ');
         maxstress = input('Maximum contour level ? ');

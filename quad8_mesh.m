@@ -37,7 +37,7 @@ for i=1:2*n+1;
             x = (i-1)*deltx;
             y = (j-1)*delty - h/2;
             coord(node,:) = [node x y];
-            if (load_opt==2)|(load_opt==3)|(load_opt==4)
+            if any(load_opt == [2, 3, 4])
                 u = (R - y)*sin(x/R) - x;
                 v = R -(R-y)*cos(x/R) -  y;
                 if load_opt==2
@@ -55,7 +55,7 @@ for i=1:2*n+1;
             x = (i-1)*deltx;
             y = (j-1)*delty - h/2;
             coord(node,:) = [node x y];
-            if (load_opt==2)|(load_opt==3)|(load_opt==4)
+            if any(load_opt == [2, 3, 4])
                 u = (R - y)*sin(x/R) - x;
                 v = R -(R-y)*cos(x/R) - y;
                 if load_opt==2
@@ -167,7 +167,7 @@ if load_opt==4
                Interior(end) 1 RadD];
 end
 
-fid=fopen(filen,'w')
+fid=fopen(filen,'w');
 fprintf(fid,'Number_of_nodes \n');
 fprintf(fid,'%5d \n',node);
 fprintf(fid,'Nodal_coordinates \n');
@@ -186,7 +186,7 @@ if load_opt==2
 elseif load_opt~=4
     fprintf(fid,'%5d \n',4*m+2);
 else
-    fprintf(fid,'%5d \n',4*m+2+size(DispMat,1))
+    fprintf(fid,'%5d \n',4*m+2+size(DispMat,1));
 end
 fprintf(fid,'Prescribed_displacements \n');
 if load_opt==2
@@ -195,22 +195,22 @@ if load_opt==2
         fprintf(fid,'%5d 2 %20.15f \n',[i displ(i,3)]);
     end
 elseif load_opt==3
-    fprintf(fid,'%5d 1 0.0 \n',[1:2*m+1]);
-    fprintf(fid,'%5d 2 0.0 \n',[node-(2*m):node]);
-elseif (load_opt==1)|(load_opt==0)
-    fprintf(fid,'%5d 1 0.0 \n',[1:2*m+1]);
-    fprintf(fid,'%5d 2 0.0 \n',[1:2*m+1]);
+    fprintf(fid,'%5d 1 0.0 \n',1:2*m+1);
+    fprintf(fid,'%5d 2 0.0 \n',node-(2*m):node);
+elseif any(load_opt == [0, 1])
+    fprintf(fid,'%5d 1 0.0 \n',1:2*m+1);
+    fprintf(fid,'%5d 2 0.0 \n',1:2*m+1);
 elseif load_opt==4
-    fprintf(fid,'%5d 1 0.0 \n',[1:2*m+1]);
-    fprintf(fid,'%5d 2 0.0 \n',[node-(2*m):node]);
-    fprintf(fid,'%5d %5d %20.15f \n',DispMat')
+    fprintf(fid,'%5d 1 0.0 \n',1:2*m+1);
+    fprintf(fid,'%5d 2 0.0 \n',node-(2*m):node);
+    fprintf(fid,'%5d %5d %20.15f \n',DispMat');
 end
 fprintf(fid,'Number_of_nodal_loads \n');
 if load_opt==2
-    fprintf(fid,'0 \n')
+    fprintf(fid,'0 \n');
 elseif load_opt==3
     fprintf(fid,'%5d \n',size(LoadMat,1));
-elseif (load_opt==1)|(load_opt==0)
+elseif any(load_opt == [0, 1])
     fprintf(fid,'%5d \n',2*m+1);
 elseif load_opt==4
     fprintf(fid,' 0 \n');

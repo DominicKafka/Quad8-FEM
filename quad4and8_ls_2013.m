@@ -12,7 +12,7 @@ end
 DofPerEl   = 2*NodesPerEl;
 TotKvec    = DofPerEl^2;
 
-disp(['Welcome to the MEE781 Finite Element Program'])
+disp('Welcome to the MEE781 Finite Element Program')
 
 filename = input('Input filename (without extension) ? ','s');
 [nnodes,ndcoor,nodes,coor,nelem,plane,elnodes,elas,pois,t,ndispl,...
@@ -73,6 +73,10 @@ dUNrm  = 1.0;
 F = zeros(2*nnodes,1);
 LoadFac  = (1:1:nloadinc)/nloadinc;
 
+% FIXME: this 12 should be a variable
+stress = zeros(nelem, 12);
+strain = zeros(nelem, 12);
+
 for iter_load = 1:nloadinc;
     disp('---------------------------------------------------------------')
     disp(['                      Load increment ',num2str(iter_load)])
@@ -88,7 +92,7 @@ for iter_load = 1:nloadinc;
     end
     ResNrm = 1.d0;
     iter   = 0;
-    while (ResNrm>tol)|(dUNrm>tol)
+    while (ResNrm>tol) || (dUNrm>tol)
         tic;
         iter = iter + 1;
         %Main loop over elements. Compute k_elem and assemble
@@ -194,14 +198,14 @@ for iter_load = 1:nloadinc;
             U(mdof,1) = U(mdof,1) + deltaUf(length(fdof)+1:end);
             [U(sdof,1),P_mpc,d2PdUm2_Rs] = MPC_user(U(mdof,1),F(sdof));
         end
-        AllResNrm(iter) = ResNrm;
-        AlldUNrm(iter)  = dUNrm;
+        AllResNrm(iter) = ResNrm; %#ok<SAGROW>
+        AlldUNrm(iter)  = dUNrm; %#ok<SAGROW>
     end
     % Get support reactions
     Fp = F(pdof);
 
     disp(['Load increment ',num2str(iter_load),' converged after ',num2str(iter),' iterations.'])
-    All_iter(iter_load) = iter;
+    All_iter(iter_load) = iter; %#ok<SAGROW>
     All_soln(1+nnodes*(iter_load-1):nnodes*iter_load,:) = [U(1:2:2*nnodes) U(2:2:2*nnodes)];
 end
 tic;
@@ -209,7 +213,7 @@ tic;
 
 % Compute Von Mises and Tresca and write output to text based output file
 [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,ndispl,Fp, ...
-    plane,pois,elas,nnodes,nodes,nelem,elnodes,stress,strain);
+    plane,pois,nnodes,nodes,nelem,elnodes,stress,strain);
 
 % If GraphOpt=1, start Graphical Output
 if GraphOpt
