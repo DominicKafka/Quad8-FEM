@@ -9,33 +9,10 @@ Uoutput(:,1) = nodes;
 Uoutput(:,2) = U(1:2:nnodes*2);
 Uoutput(:,3) = U(2:2:nnodes*2);
 
-
 [StressOut, StressNode] = nodal_stresses(elnodes, stress);
 VonMises = calc_von_mises(StressNode, pois, plane);
+Tresca = calc_tresca(StressNode, pois, plane);
 
-Tresca = zeros(nelem,4);
-if plane ==1
-    for j=1:nelem
-        for i=1:4
-            s = [StressNode(j,2+(i-1)*3) StressNode(j,4+(i-1)*3) 0
-                 StressNode(j,4+(i-1)*3) StressNode(j,3+(i-1)*3) 0
-                0 0 0];
-            principal = eig(s);
-            Tresca(j,i) = max(principal)-min(principal);
-        end
-    end
-else
-    for j=1:nelem
-        for i=1:4
-            s = [StressNode(j,2+(i-1)*3) StressNode(j,4+(i-1)*3) 0
-                 StressNode(j,4+(i-1)*3) StressNode(j,3+(i-1)*3) 0
-                0 0 pois*(StressNode(j,2+(i-1)*3)+StressNode(j,3+(i-1)*3))];
-            principal = eig(s);
-            Tresca(j,i) = max(principal)-min(principal);
-        end
-    end
-end
-       
 StrainOut = zeros(nelem,13);
 StrainOut(1:nelem,1) = elnodes(:,1);
 StrainOut(:,2:7) = strain(:,1:6);
