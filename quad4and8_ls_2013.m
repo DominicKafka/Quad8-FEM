@@ -212,8 +212,8 @@ tic;
 
 
 % Compute Von Mises and Tresca and write output to text based output file
-[StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,ndispl,Fp, ...
-    plane,pois,nnodes,nodes,nelem,elnodes,stress,strain);
+[StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,Fp, ...
+    plane,pois,nodes,elnodes,stress,strain);
 
 % If GraphOpt=1, start Graphical Output
 if GraphOpt

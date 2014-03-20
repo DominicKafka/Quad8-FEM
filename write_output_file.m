@@ -1,43 +1,16 @@
-function [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,ndispl,Pb,plane,pois,nnodes,nodes,nelem,elnodes,stress,strain)
+function [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,Pb,plane,pois,nodes,elnodes,stress,strain)
+
+ndispl = size(displ, 1);
+nnodes = length(nodes);
+nelem = size(elnodes, 1);
 
 Uoutput = zeros(nnodes,3);
 Uoutput(:,1) = nodes;
 Uoutput(:,2) = U(1:2:nnodes*2);
 Uoutput(:,3) = U(2:2:nnodes*2);
 
-StressOut = zeros(nelem,13);
-StressOut(:,1)     = elnodes(:,1);
-StressOut(:,2:7)   = stress(:,1:6);
-StressOut(:,8:10)  = stress(:,10:12);
-StressOut(:,11:13) = stress(:,7:9);
 
-StressNode(1:nelem,1) = elnodes(:,1);
-StressNode(:,2) = (1+sqrt(3)/2)*StressOut(:,2) - 0.5*(StressOut(:,5) + ...
-                  StressOut(:,11)) + (1-sqrt(3)/2)*StressOut(:,8);
-StressNode(:,5) = (1+sqrt(3)/2)*StressOut(:,5) - 0.5*(StressOut(:,2) + ...
-                  StressOut(:,8)) + (1-sqrt(3)/2)*StressOut(:,11);
-StressNode(:,8) = (1+sqrt(3)/2)*StressOut(:,8) - 0.5*(StressOut(:,5) + ...
-                  StressOut(:,11)) + (1-sqrt(3)/2)*StressOut(:,2);
-StressNode(:,11) = (1+sqrt(3)/2)*StressOut(:,11) - 0.5*(StressOut(:,2) + ...
-                  StressOut(:,8)) + (1-sqrt(3)/2)*StressOut(:,5);
-
-StressNode(:,3) = (1+sqrt(3)/2)*StressOut(:,3) - 0.5*(StressOut(:,6) + ...
-                  StressOut(:,12)) + (1-sqrt(3)/2)*StressOut(:,9);
-StressNode(:,6) = (1+sqrt(3)/2)*StressOut(:,6) - 0.5*(StressOut(:,3) + ...
-                  StressOut(:,9)) + (1-sqrt(3)/2)*StressOut(:,12);
-StressNode(:,9) = (1+sqrt(3)/2)*StressOut(:,9) - 0.5*(StressOut(:,6) + ...
-                  StressOut(:,12)) + (1-sqrt(3)/2)*StressOut(:,3);
-StressNode(:,12) = (1+sqrt(3)/2)*StressOut(:,12) - 0.5*(StressOut(:,3) + ...
-                  StressOut(:,9)) + (1-sqrt(3)/2)*StressOut(:,6);
-
-StressNode(:,4) = (1+sqrt(3)/2)*StressOut(:,4) - 0.5*(StressOut(:,7) + ...
-                  StressOut(:,13)) + (1-sqrt(3)/2)*StressOut(:,10);
-StressNode(:,7) = (1+sqrt(3)/2)*StressOut(:,7) - 0.5*(StressOut(:,4) + ...
-                  StressOut(:,10)) + (1-sqrt(3)/2)*StressOut(:,13);
-StressNode(:,10) = (1+sqrt(3)/2)*StressOut(:,10) - 0.5*(StressOut(:,7) + ...
-                  StressOut(:,13)) + (1-sqrt(3)/2)*StressOut(:,4);
-StressNode(:,13) = (1+sqrt(3)/2)*StressOut(:,13) - 0.5*(StressOut(:,4) + ...
-                  StressOut(:,10)) + (1-sqrt(3)/2)*StressOut(:,7);
+[StressOut, StressNode] = nodal_stresses(elnodes, stress);
 
 VonMises = zeros(nelem,4);
 if (plane==1)
