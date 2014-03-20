@@ -1,10 +1,16 @@
 function graphical_user_interface(nnodes,coor,nelem,elnodes,StressNode,...
     U,VonMises,Tresca,nloadinc,All_soln)
 
-function plotelements(coordinates, alpha, color)
+function plotelements(coordinates, color, alpha, linestyle)
+    if isstr(color)
+        c = @(i) color;
+    else
+        c = @(i) color(i, :);
+    end
     for i=1:nelem
-        h=fill(coordinates(elnodes(i, 2:5),1),coordinates(elnodes(i, 2:5),2),color);
-        set(h,'FaceAlpha',alpha)
+        h=fill(coordinates(elnodes(i, 2:5),1),coordinates(elnodes(i, 2:5),2),c(i));
+        set(h,'FaceAlpha',alpha);
+        set(h, 'LineStyle', linestyle);
     end
 end
 
@@ -32,20 +38,20 @@ while choice ~= 12
         hold on
     end
     if choice == 1
-        plotelements(coor, 'b', 0.8);
+        plotelements(coor, 'b', 0.8, '-');
         title('Undeformed shape')
     elseif choice == 2
-        plotelements(dcoor, 'b', 0.8);
+        plotelements(dcoor, 'b', 0.8, '-');
         title(['Deformed shape, magnification factor = ',num2str(magfac)])
     elseif choice == 3
-        plotelements(coor, 'b', 0.2);
+        plotelements(coor, 'b', 0.2, '-');
         if nloadinc==1
-            plotelements(dcoor, 'b', 0.8);
+            plotelements(dcoor, 'b', 0.8, '-');
         else
             for kk=1:nloadinc
                 dpm = All_soln(1+nnodes*(kk-1):nnodes*kk,:);
                 dcoor = coor + dpm;
-                plotelements(dcoor, 'b', 0.2);
+                plotelements(dcoor, 'b', 0.2, '-');
             end
         end
         title('Deformed over undeformed shape')
@@ -58,12 +64,7 @@ while choice ~= 12
             maxstress = maxstress + 1e-6;
             minstress = minstress - 1e-6;
         end
-        for i=1:nelem
-            x=dcoor(elnodes(i,2:5),1);
-            y=dcoor(elnodes(i,2:5),2);
-            h=fill(x,y,StressNode(i,[2 5 8 11]));
-            set(h,'LineStyle','none')
-        end
+        plotelements(dcoor, StressNode(:, [2, 5, 8, 11]), 1, 'none')
         caxis([minstress maxstress]);
 %        colorbar('horiz')
          colorbar('vert')
@@ -77,12 +78,7 @@ while choice ~= 12
             maxstress = maxstress + 1e-6;
             minstress = minstress - 1e-6;
         end
-        for i=1:nelem
-            x=dcoor(elnodes(i,2:5),1);
-            y=dcoor(elnodes(i,2:5),2);
-            h=fill(x,y,StressNode(i,[3 6 9 12]));
-            set(h,'LineStyle','none')
-        end
+        plotelements(dcoor, StressNode(:, [3, 6, 9, 12]), 1, 'none');
         caxis([minstress maxstress]);
         colorbar('horiz')
         title('Contour plot: \sigma_{22}')
@@ -95,12 +91,7 @@ while choice ~= 12
             maxstress = maxstress + 1e-6;
             minstress = minstress - 1e-6;
         end
-        for i=1:nelem
-            x=dcoor(elnodes(i,2:5),1);
-            y=dcoor(elnodes(i,2:5),2);
-            h=fill(x,y,StressNode(i,[4 7 10 13]));
-            set(h,'LineStyle','none')
-        end
+        plotelements(dcoor, StressNode(:, [4, 7, 10, 13]), 1, 'none');
         caxis([minstress maxstress]);
         colorbar('horiz')
         title('Contour plot: \sigma_{12}')
@@ -113,12 +104,7 @@ while choice ~= 12
             maxstress = maxstress + 1e-6;
             minstress = minstress - 1e-6;
         end
-        for i=1:nelem
-            x=dcoor(elnodes(i,2:5),1);
-            y=dcoor(elnodes(i,2:5),2);
-            h=fill(x,y,VonMises(i,:));
-            set(h,'LineStyle','none')
-        end
+        plotelements(dcoor, VonMises, 1, 'none');
         caxis([minstress maxstress]);
         colorbar('horiz')
         title('Contour plot: Von Mises')
@@ -131,12 +117,7 @@ while choice ~= 12
             maxstress = maxstress + 1e-6;
             minstress = minstress - 1e-6;
         end
-        for i=1:nelem
-            x=dcoor(elnodes(i,2:5),1);
-            y=dcoor(elnodes(i,2:5),2);
-            h=fill(x,y,Tresca(i,:));
-            set(h,'LineStyle','none')
-        end
+        plotelements(dcoor, Tresca, 1, 'none');
         caxis([minstress maxstress]);
         colorbar('horiz')
         title('Contour plot: Tresca')
