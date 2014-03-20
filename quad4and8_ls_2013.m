@@ -4,11 +4,11 @@ clear all;close all
 %ElType = 'q4';
 ElType = 'q8';
 
- if (ElType=='q4')|(ElType=='5B')|(ElType=='7B')
+if any(strcmp(ElType, {'q4', '5B', '7B'}))
     NodesPerEl = 4;
- elseif (ElType=='q8')
-     NodesPerEl = 8;
- end
+elseif strcmp(ElType, 'q8')
+    NodesPerEl = 8;
+end
 DofPerEl   = 2*NodesPerEl;
 TotKvec    = DofPerEl^2;
 
@@ -16,7 +16,7 @@ disp(['Welcome to the MEE781 Finite Element Program'])
 
 filename = input('Input filename (without extension) ? ','s');
 [nnodes,ndcoor,nodes,coor,nelem,plane,elnodes,elas,pois,t,ndispl,...
-    displ,ncload,cload,nloadinc,mdof,sdof] = read_input_file(filename,ElType);
+    displ,ncload,cload,nloadinc,mdof,sdof] = read_input_file(filename,NodesPerEl);
 file_out = [filename,'.out'];
 
 %Get maximum dimensions of model
@@ -26,7 +26,7 @@ dL_max = sqrt(dx_max^2 + dy_max^2);
 
 %GraphOpt=1: graphical display of results and text based output files
 %GraphOpt=0: only text based output files
-GraphOpt = 1;
+GraphOpt = false;
 
 % Find prescribed (pdof) and free (fdof) degrees of freedom
 dof = ones(nnodes*2,1);
@@ -156,7 +156,7 @@ for iter_load = 1:nloadinc;
         end
         ResNrm = ResNrm/ResNrm0;
         PrntResStr = ['Normalized residual at start of iteration ',num2str(iter),'    = ',num2str(ResNrm,'%10.6e')];
-        cprintf([1,0,1],[PrntResStr,' \n'])
+        disp(PrntResStr)
         
         % Solve update of free dof's
         % Solution for non-symmetric stiffness matrix
@@ -186,7 +186,7 @@ for iter_load = 1:nloadinc;
         
         dUNrm = norm(deltaUf)/dL_max;
         PrntDspStr = ['Normalized displacement update                 = ',num2str(dUNrm,'%10.6e')];
-        cprintf([0,0,1],[PrntDspStr,' \n'])
+        disp(PrntDspStr)
         disp('                    --------------------')
         % Sort Uf and Ub into A
         U(fdof,1) = U(fdof,1) + deltaUf(1:length(fdof));

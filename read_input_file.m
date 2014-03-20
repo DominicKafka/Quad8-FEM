@@ -1,11 +1,5 @@
 function [nnodes,ndcoor,nodes,coor,nelem,plane,elnodes,elas,pois,t,...
-    ndispl,displ,ncload,cload,nloadinc,MasterDOF,SlaveDOF] = read_input_file(filename,ElType)
-
-if (ElType == 'q4')|(ElType=='5B')|(ElType=='7B')
-    NodesPerEl = 4;
-elseif ElType == 'q8'
-    NodesPerEl = 8;
-end
+    ndispl,displ,ncload,cload,nloadinc,MasterDOF,SlaveDOF] = read_input_file(filename,NodesPerEl)
 
 % Open input file
 fid = fopen([filename,'.inp'],'r');
