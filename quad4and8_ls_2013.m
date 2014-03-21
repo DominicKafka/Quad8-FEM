@@ -56,16 +56,12 @@ else
 end
 
 c = e/(1-nu^2);
-matC = zeros(4,4);
-matC(1,1) = c;
-matC(2,2) = c;
-matC(1,2) = c*nu;
-matC(2,1) = matC(1,2);
-matC(3,3) = c*(1-nu);
-matC(4,4) = matC(3,3);
+matC = blkdiag([c, c*nu; c*nu, c], eye(2)*c*(1-nu));
+
 ndnum  = 2:(1+NodesPerEl);
-rowpos = repmat(1:(DofPerEl),1,DofPerEl);
-colpos = reshape(repmat(1:DofPerEl,DofPerEl,1),1,TotKvec);
+[colpos, rowpos] = meshgrid(1:DofPerEl);
+colpos = colpos(:)';
+rowpos = rowpos(:)';
 
 tol    = 3.d-5;
 dUNrm  = 1.0;
