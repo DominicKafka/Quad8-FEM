@@ -1,27 +1,10 @@
-function [StressNode,VonMises,Tresca] = write_output_file(file_out,U,displ,Pb,plane,pois,nodes,elnodes,stress,strain)
+function write_output_file(file_out,U,displ,Pb,nodes,elnodes,strain,StressOut)
 
-ndispl = size(displ, 1);
-nnodes = length(nodes);
-nelem = size(elnodes, 1);
+Uoutput = [nodes, U(1:2:end), U(2:2:end)];
 
-Uoutput = zeros(nnodes,3);
-Uoutput(:,1) = nodes;
-Uoutput(:,2) = U(1:2:nnodes*2);
-Uoutput(:,3) = U(2:2:nnodes*2);
+StrainOut = [elnodes(:,1), strain(:, [1:6, 10:12, 7:9])];
 
-[StressOut, StressNode] = nodal_stresses(elnodes, stress);
-VonMises = calc_von_mises(StressNode, pois, plane);
-Tresca = calc_tresca(StressNode, pois, plane);
-
-StrainOut = zeros(nelem,13);
-StrainOut(1:nelem,1) = elnodes(:,1);
-StrainOut(:,2:7) = strain(:,1:6);
-StrainOut(:,8:10) = strain(:,10:12);
-StrainOut(:,11:13) = strain(:,7:9);
-
-SupReac = zeros(ndispl,3);
-SupReac(:,1:2) = displ(:,1:2);
-SupReac(:,3) = Pb;
+SupReac = [displ(:,1:2), Pb];
 
 fid = fopen(file_out,'w');
 fprintf(fid,'OUTPUT OF MATLAB Q4 SMALL STRAIN FEM IMPLEMENTATION \n');
