@@ -40,47 +40,42 @@ elif load_opt == 4:
 
 filen = raw_input('Write output to which file ? ')
 
+coord = []
+displ = []
 node = 0
 deltx = l / (2 * n)
-for i in mslice[1:2 * n + 1]:
-    if (mod(i, 2) == 1):
+for i in range(2 * n + 1):
+    if (((i+1) % 2) == 1):
         delty = h / (2 * m)
-        for j in mslice[1:2 * m + 1]:
+        for j in range(2 * m + 1):
             node = node + 1
-            x = (i - 1) * deltx
-            y = (j - 1) * delty - h / 2
-            coord(node, mslice[:]).lvalue = mcat([node, x, y])
-            if logical_or((load_opt == 2), logical_or((load_opt == 3), (load_opt == 4))):
-                u = (R - y) * sin(x / R) - x
-                v = R - (R - y) * cos(x / R) - y
+            x = i * deltx
+            y = j * delty - h / 2
+            coord.append([node,x,y])
+            if ((load_opt == 2) or (load_opt == 3) or (load_opt == 4)):
+                u = (R - y) * math.sin(x / R) - x
+                v = R - (R - y) * math.cos(x / R) - y
                 if load_opt == 2:
-                    displ(node, mslice[:]).lvalue = mcat([node, u, v])
-                    coord(node, mslice[:]).lvalue = mcat([node, x, y])
+                    displ.append([node, u, v])
+                    coord.append([node, x, y])
                 else:
-                    coord(node, mslice[:]).lvalue = mcat([node(x + u), (y + v)])
-                end
-            end
-        end
+                    coord.append([node(x + u), (y + v)])
+
     else:
         delty = h / m
-        for j in mslice[1:m + 1]:
+        for j in range(m + 1):
             node = node + 1
             x = (i - 1) * deltx
             y = (j - 1) * delty - h / 2
-            coord(node, mslice[:]).lvalue = mcat([node, x, y])
-            if logical_or((load_opt == 2), logical_or((load_opt == 3), (load_opt == 4))):
-                u = (R - y) * sin(x / R) - x
-                v = R - (R - y) * cos(x / R) - y
+            coord.append([node,x,y])
+            if ((load_opt == 2) or (load_opt == 3) or (load_opt == 4)):
+                u = (R - y) * math.sin(x / R) - x
+                v = R - (R - y) * math.cos(x / R) - y
                 if load_opt == 2:
-                    displ(node, mslice[:]).lvalue = mcat([node, u, v])
-                    coord(node, mslice[:]).lvalue = mcat([node, x, y])
+                    displ.append([node, u, v])
+                    coord.append([node, x, y])
                 else:
-                    coord(node, mslice[:]).lvalue = mcat([node(x + u), (y + v)])
-                end
-            end
-        end
-    end
-end
+                    coord.append([node(x + u), (y + v)])
 
 el = 0
 for i in mslice[1:n]:
