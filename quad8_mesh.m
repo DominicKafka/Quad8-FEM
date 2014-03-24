@@ -29,41 +29,22 @@ filen  = input('Write output to which file ? ','s');
 
 node = 0;
 deltx = l/(2*n);
-for i=1:2*n+1;
-    if(mod(i,2)==1)
-        delty = h/(2*m);
-        for j=1:2*m+1;
-            node = node + 1;
-            x = (i-1)*deltx;
-            y = (j-1)*delty - h/2;
-            coord(node,:) = [node x y];
-            if any(load_opt == [2, 3, 4])
-                u = (R - y)*sin(x/R) - x;
-                v = R -(R-y)*cos(x/R) -  y;
-                if load_opt==2
-                    displ(node,:)=[node u v];
-                    coord(node,:)=[node x y];
-                else
-                    coord(node,:) = [node (x+u) (y+v)];
-                end
-            end
-        end
-    else
-        delty = h/m;
-        for j=1:m+1;
-            node = node + 1;
-            x = (i-1)*deltx;
-            y = (j-1)*delty - h/2;
-            coord(node,:) = [node x y];
-            if any(load_opt == [2, 3, 4])
-                u = (R - y)*sin(x/R) - x;
-                v = R -(R-y)*cos(x/R) - y;
-                if load_opt==2
-                    displ(node,:)=[node u v];
-                    coord(node,:)=[node x y];
-                else
-                    coord(node,:) = [node (x+u) (y+v)];
-                end
+for i = 1:2*n+1;
+    multiplier = mod(i, 2) + 1;
+    delty = h/(multiplier*m);
+    for j = 1:(multiplier*m + 1);
+        node = node + 1;
+        x = (i - 1)*deltx;
+        y = (j - 1)*delty - h/2;
+        coord(node, :) = [node x y];
+        if any(load_opt == [2, 3, 4])
+            u = (R - y)*sin(x/R) - x;
+            v = R - (R - y)*cos(x/R) - y;
+            if load_opt == 2
+                displ(node, :) = [node u v];
+                coord(node, :) = [node x y];
+            else
+                coord(node, :) = [node (x+u) (y+v)];
             end
         end
     end
