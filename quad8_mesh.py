@@ -10,64 +10,12 @@ Created on Sun Mar 23 12:32:57 2014
 
 
 import math
-
 from mesh_inputs import mesh_inputs
+from node_coord_displ import node_coord_displ
 
-(h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen) = mesh_inputs()
+h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen = mesh_inputs()
 
-coord = []
-displ = []
-node = 0
-deltx = l / (2 * n)
-for i in range(2 * n + 1):
-    if (((i+1) % 2) == 1):
-        delty = h / (2 * m)
-        for j in range(2 * m + 1):
-            node = node + 1
-            x = i * deltx
-            y = j * delty - h / 2
-            coord.append([node,x,y])
-            if ((load_opt == 2) or (load_opt == 3) or (load_opt == 4)):
-                u = (R - y) * math.sin(x / R) - x
-                v = R - (R - y) * math.cos(x / R) - y
-                if load_opt == 2:
-                    displ.append([node, u, v])
-                    coord.append([node, x, y])
-                else:
-                    coord.append([node(x + u), (y + v)])
-
-    else:
-        delty = h / m
-        for j in range(m + 1):
-            node = node + 1
-            x = (i - 1) * deltx
-            y = (j - 1) * delty - h / 2
-            coord.append([node,x,y])
-            if ((load_opt == 2) or (load_opt == 3) or (load_opt == 4)):
-                u = (R - y) * math.sin(x / R) - x
-                v = R - (R - y) * math.cos(x / R) - y
-                if load_opt == 2:
-                    displ.append([node, u, v])
-                    coord.append([node, x, y])
-                else:
-                    coord.append([node(x + u), (y + v)])
-
-el = 0
-for i in mslice[1:n]:
-    for j in mslice[1:m]:
-        elnode1 = (3 * m + 2) * (i - 1) + 2 * (j - 1) + 1
-        elnode2 = (3 * m + 2) * (i - 1) + 2 * (j - 1) + 3
-        elnode3 = (3 * m + 2) * i + 2 * (j - 1) + 1
-        elnode4 = (3 * m + 2) * i + 2 * (j - 1) + 3
-        elnode5 = 2 * m + 1 + (3 * m + 2) * (i - 1) + j
-        elnode6 = (3 * m + 2) * i + 2 * (j - 1) + 2
-        elnode7 = 2 * m + 1 + (3 * m + 2) * (i - 1) + j + 1
-        elnode8 = (3 * m + 2) * (i - 1) + 2 * (j - 1) + 2
-        el1 = el + 1
-        elnode(el1, mslice[:]).lvalue = mcat([el1, elnode1, elnode3, elnode4, elnode2, elnode5, elnode6, elnode7, elnode8])
-        el = el + 1
-    end
-end
+coord, displ, elnode, node, el = node_coord_displ(h, l, m, n, load_opt)
 
 #Compute equivalant nodal forces applied at beam tip
 delty = h / m
