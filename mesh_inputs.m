@@ -1,4 +1,4 @@
-function [h,l,m,n,option,E,nu,t,loadopt,V0,R,Mag,RadD,filen] = mesh_inputs 
+function [h,l,m,n,option,E,nu,t,load_opt,V0,R,Mag,RadD,filen] = mesh_inputs 
 
 h      = input('Height of rectangle ? ');
 l      = input('Length of rectangle ? ');
@@ -12,7 +12,7 @@ disp('0: Parabolic shear stress or ');
 disp('1: Linear bending stress at beam tip or');
 disp('2: Beam forced into radius or');
 disp('3: Beam transformed to 90 degree section loaded with pressure');
-load_opt = input('4: Beam transformed to 90 degree section, inside surface displaced');
+load_opt = input('4: Beam transformed to 90 degree section, inside surface displaced ');
 if load_opt == 0
     V0 = input('Magnitude of total shear force at beam tip ? ');
 elseif load_opt == 1

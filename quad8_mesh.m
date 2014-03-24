@@ -1,75 +1,9 @@
 clear all
 
-[h,l,m,n,option,E,nu,t,loadopt,V0,R,Mag,RadD,filen] = mesh_inputs
+[h,l,m,n,option,E,nu,t,load_opt,V0,R,Mag,RadD,filen] = mesh_inputs
 
-% h      = input('Height of rectangle ? ');
-% l      = input('Length of rectangle ? ');
-% m      = input('Increments along height ? ');
-% n      = input('Increments along length ? ');
-% option = input('0:Plane strain or 1:Plane stress ? ');
-% E      = input('Elasticity modulus ? ');
-% nu     = input('Poisson''s ratio ? ');
-% t      = input('Element thickness ? ');
-% disp('0: Parabolic shear stress or ');
-% disp('1: Linear bending stress at beam tip or');
-% disp('2: Beam forced into radius or');
-% disp('3: Beam transformed to 90 degree section loaded with pressure');
-% load_opt = input('4: Beam transformed to 90 degree section, inside surface displaced');
-% if load_opt == 0
-    % V0 = input('Magnitude of total shear force at beam tip ? ');
-% elseif load_opt == 1
-    % V0 = input('Magnitude of bending stress at top surface at beam tip ? ');
-% elseif load_opt==2
-    % R  = input('Enter radius that beam is deformed into. ');
-% elseif load_opt==3
-    % R = 2*l/pi;
-    % Mag = input('Internal pressure (in undeformed configuration) ? '); 
-% elseif load_opt==4
-    % R = 2*l/pi;
-    % RadD = input('Radial displacement ? ');
-% end
-% filen  = input('Write output to which file ? ','s');
+[coord,displ,elnode,node,el] = node_coord_displ(h,l,m,n,load_opt);
 
-node = 0;
-deltx = l/(2*n);
-for i = 1:2*n+1;
-    multiplier = mod(i, 2) + 1;
-    delty = h/(multiplier*m);
-    for j = 1:(multiplier*m + 1);
-        node = node + 1;
-        x = (i - 1)*deltx;
-        y = (j - 1)*delty - h/2;
-        coord(node, :) = [node x y];
-        if any(load_opt == [2, 3, 4])
-            u = (R - y)*sin(x/R) - x;
-            v = R - (R - y)*cos(x/R) - y;
-            if load_opt == 2
-                displ(node, :) = [node u v];
-                coord(node, :) = [node x y];
-            else
-                coord(node, :) = [node (x+u) (y+v)];
-            end
-        end
-    end
-end
-
-el = 0;
-for i=1:n
-    for j=1:m
-        elnode1 = (3*m+2)*(i-1) + 2*(j-1) + 1;
-        elnode2 = (3*m+2)*(i-1) + 2*(j-1) + 3;
-        elnode3 = (3*m+2)*i + 2*(j-1) + 1;
-        elnode4 = (3*m+2)*i + 2*(j-1) + 3;
-        elnode5 = 2*m+1+(3*m+2)*(i-1) + j;
-        elnode6 = (3*m+2)*i + 2*(j-1) + 2;
-        elnode7 = 2*m+1+(3*m+2)*(i-1) + j+1;
-        elnode8 = (3*m+2)*(i-1) + 2*(j-1) + 2;
-        el1 = el+1;
-        elnode(el1,:) = [el1 elnode1 elnode3 elnode4 elnode2 ...
-            elnode5 elnode6 elnode7 elnode8];
-        el=el+1;
-    end
-end
 
 %Compute equivalant nodal forces applied at beam tip
 delty = h / m;
