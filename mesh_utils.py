@@ -169,16 +169,11 @@ def nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD):
     return forces, forcesb
 
 
-def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t):
+def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_opt, m, DispMat, displ, LoadMat, n, forces, forcesb):
     
-    #f_h = open("data.txt", "w")
-    # write the log_info into the data.txt file
-    #f_h.write(log_info)
-    # close the data.txt file
-    #f_h.close()    
+    import pylab as pl
     
     fid = open(filen,'w')
-    #fp.write("%s %s" % (string1, string2)) 
     fid.write("Number_of_nodes \n")
     fid.write("%5f \n"% node)
     fid.write("Nodal_coordinates \n")
@@ -194,67 +189,77 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t):
     fid.write('Material_properties \n')
     fid.write('%f %f %f \n'% tuple([E, nu, t]))
     fid.write('Number_of_prescribed_displacements \n')
-#    if load_opt == 2:
-#        fprintf(fid, mstring('%5d \\n'), 2 * node)
-#        elif load_opt == 4:
-#            fprintf(fid, mstring('%5d \\n'), 4 * m + 2)
-#            else:
-#                fprintf(fid, mstring('%5d \\n'), 4 * m + 2 + size(DispMat, 1))
-#                end
-#                fprintf(fid, mstring('Prescribed_displacements \\n'))
-#                if load_opt == 2:
-#                    for i in mslice[1:node]:
-#                        fprintf(fid, mstring('%5d 1 %20.15f \\n'), mcat([i, displ(i, 2)]))
-#                        fprintf(fid, mstring('%5d 2 %20.15f \\n'), mcat([i, displ(i, 3)]))
-#                        end
-#                        elif load_opt ==  3:
-#                            fprintf(fid, mstring('%5d 1 0.0 \\n'), mcat([mslice[1:2 * m + 1]]))
-#                            fprintf(fid, mstring('%5d 2 0.0 \\n'), mcat([mslice[node - (2 * m):node]]))
-#                            elif logical_or((load_opt == 1), (load_opt == 0)):
-#                                fprintf(fid, mstring('%5d 1 0.0 \\n'), mcat([mslice[1:2 * m + 1]]))
-#                                fprintf(fid, mstring('%5d 2 0.0 \\n'), mcat([mslice[1:2 * m + 1]]))
-#                                elif load_opt == 4:
-#                                    fprintf(fid, mstring('%5d 1 0.0 \\n'), mcat([mslice[1:2 * m + 1]]))
-#                                    fprintf(fid, mstring('%5d 2 0.0 \\n'), mcat([mslice[node - (2 * m):node]]))
-#                                    fprintf(fid, mstring('%5d %5d %20.15f \\n'), DispMat.cT)
-#                                    end
-#                                    fprintf(fid, mstring('Number_of_nodal_loads \\n'))
-#                                    if load_opt == 2:
-#                                        fprintf(fid, mstring('0 \\n'))
-#                                        elif load_opt == 3:
-#                                            fprintf(fid, mstring('%5d \\n'), size(LoadMat, 1))
-#                                            elif logical_or((load_opt == 1), (load_opt == 0)):
-#                                                fprintf(fid, mstring('%5d \\n'), 2 * m + 1)
-#                                                elif load_opt == 4:
-#                                                    fprintf(fid, mstring(' 0 \\n'))
-#                                                    end
-#                                                    fprintf(fid, mstring('Nodal_loads \\n'))
-#                                                    if load_opt == 0:
-#                                                        for i in mslice[1:2 * m + 1]:
-#                                                            c_node = (3 * m + 2) * n + i
-#                                                            fprintf(fid, mstring('%5d 2 %20.15f \\n'), mcat([c_node, forces(i)]))
-#                                                            end
-#                                                            elif load_opt == 1:
-#                                                                for i in mslice[1:2 * m + 1]:
-#                                                                    c_node = (3 * m + 2) * n + i
-#                                                                    fprintf(fid, mstring('%5d 1 %20.15f \\n'), mcat([c_node, forcesb(i)]))
-#                                                                    end
-#                                                                    elif load_opt == 3:
-#                                                                        fprintf(fid, mstring('%5d %5d %20.15f \\n'), LoadMat.cT)
-#                                                                        end
-#                                                                        fprintf(fid, mstring('Number_of_load_increments \\n'))
-#                                                                        fprintf(fid, mstring(' 10 \\n'))
-#                                                                        fprintf(fid, mstring('Number_of_MPCs \\n'))
-#                                                                        fprintf(fid, mstring('  0 \\n'))
-#                                                                        fclose(fid)
-#                                                                        
-#                                                                        figure(1)
-#                                                                        plot(coord(mslice[:], 2), coord(mslice[:], 3), mstring('x'))
-#                                                                        for i in mslice[1:node]:
-#                                                                            text(coord(i, 2), coord(i, 3), num2str(i))
-#                                                                            end
-#                                                                            axis(mstring('equal'))
-    fid.close()    
+    if load_opt == 2:
+        fid.write('%5d \n'% 2 * node)
+    elif load_opt == 4:
+        fid.write('%5d \n'% 4 * m + 2)
+    else:
+        fid.write('%5d \n'% (4 * m + 2 + int(len(DispMat))))
+    fid.write('Prescribed_displacements \n')
+    if load_opt == 2:
+        for i in range(node):
+            fid.write('%5d 1 %20.15f \n'% (i, displ[i, 1]))
+            fid.write('%5d 2 %20.15f \n'% (i, displ[i, 2]))
+
+    elif load_opt ==  3:
+        for i in range(2 * m + 1):
+            fid.write('%5d 1 0.0 \n'% (i+1))
+        for j in range((node - (2 * m)),node):
+            fid.write('%5d 2 0.0 \n'% (j+1))
+    elif ((load_opt == 1) or (load_opt == 0)):
+        for i in range(2 * m + 1):
+            fid.write('%5d 1 0.0 \n'% int(i+1))
+        for j in range(2 * m + 1):
+            fid.write('%5d 2 0.0 \n'% int(j+1))
+    elif load_opt == 4:
+        for i in range(2 * m + 1):        
+            fid.write('%5d 1 0.0 \n'% int(i+1))
+        for j in range((node - (2 * m)),node):
+            fid.write('%5d 2 0.0 \n'% int(j+1))
+        for k in range(int(len(DispMat))):
+            fid.write('%5d %5d %f \n'% DispMat[k])
+
+    fid.write('Number_of_nodal_loads \n')
+    if load_opt == 2:
+        fid.write('0 \n')
+    elif load_opt == 3:
+        fid.write('%5d \n' % int(len(LoadMat)))
+    elif ((load_opt == 1) or (load_opt == 0)):
+        fid.write('%5d \n'% (2 * m + 1))
+    elif load_opt == 4:
+        fid.write(' 0 \n')
+    fid.write('Nodal_loads \n')
+                                                    
+    if load_opt == 0:
+        for i in range(2 * m + 1):
+            c_node = (3 * m + 2) * n + (i+1)
+            fid.write('%5d 2 %20.15f \n'% tuple([c_node, forces[i]]))
+
+    elif load_opt == 1:
+        for i in range(2 * m + 1):
+            c_node = (3 * m + 2) * n + (i+1)
+            fid.write('%5d 1 %20.15f \n'% tuple([c_node, forcesb[i]]))
+            
+    elif load_opt == 3:
+        for i in range(len(LoadMat)):        
+            fid.write('%5d %5d %20.15f \n'% LoadMat[i])
+   
+    fid.write('Number_of_load_increments \n')
+    fid.write(' 10 \n')
+    fid.write('Number_of_MPCs \n')
+    fid.write('  0 \n')
+    fid.close()
+                                                                        
+    pl.figure(1)
+    label = [x[0] for x in coord]    
+    x_val = [x[1] for x in coord]
+    y_val = [x[2] for x in coord]
+    pl.plot(x_val, y_val,'x')
+    for i in range(node):
+        pl.text(x_val[i], y_val[i], label[i])
+    pl.axis('equal')
+    pl.show()
+    
     
     
     
