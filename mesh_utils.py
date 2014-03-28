@@ -84,13 +84,14 @@ def node_coord_displ(h, l, m, n, load_opt, R):
 def nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD):
         
     import numpy
-    #import math
+    import math
+    DispMat = []
+    LoadMat = []    
+    
     #Compute equivalant nodal forces applied at beam tip
     delty = h / float(m)
     forces = numpy.array(numpy.zeros(shape=(2 * m + 1, 1)), dtype=float)
     forcesb = numpy.array(numpy.zeros(shape=(2 * m + 1, 1)), dtype=float)
-    #forces = []
-    #forcesb = []    
     if (load_opt < 2):
         for i in range(m):
             y1 = -h / 2. + (i) * delty
@@ -106,67 +107,52 @@ def nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD):
             F3 = 1. / 20 * (-78 * y3 ** 4 - 48 * y1 * y3 ** 3 + 160 * y3 ** 3 * y2 - 80 * y3 ** 2 * y2 ** 2 + 35 * h ** 2 * y3 ** 2 + 120 * y3 ** 2 * y2 * y1 - 48 * y3 ** 2 * y1 ** 2 - 90 * y3 * y2 * h ** 2 + 20 * h ** 2 * y3 * y1 - 80 * y3 * y1 * y2 ** 2 + 120 * y3 * y2 * y1 ** 2 - 48 * y3 * y1 ** 3 + 60 * y2 ** 2 * h ** 2 - 18 * y1 ** 4 + 5 * h ** 2 * y1 ** 2 - 30 * y2 * h ** 2 * y1 + 80 * y2 * y1 ** 3 - 80 * y1 ** 2 * y2 ** 2) * V0 / (y3 - y1) / h ** 3
             # forces contains the equivalent nodal loads for
             # parabolic shear stress distribution at beam tip
-            #forces[2 * (i):2 * (i + 1) + 1] = (forces[2 * (i):2 * (i + 1) + 1]) + [[F1], [F2], [F3]]
             forces[2 * (i),0] = (forces[2 * (i),0]) + F1
             forces[2 * (i) + 1,0] = (forces[2 * (i) + 1,0]) + F2
             forces[2 * (i) + 2,0] = (forces[2 * (i) + 2,0]) + F3
             # forcesb contains the equivalant nodal loads for
             # linear bending stress applied at the beam tip
-            #forcesb[2 * (i):2 * (i + 1) + 2] = forcesb[2 * (i):2 * (i + 1) + 1] + [[FA], [FB], [FC]]
             forcesb[2 * (i),0] = (forcesb[2 * (i),0]) + FA
             forcesb[2 * (i) + 1,0] = (forcesb[2 * (i) + 1,0]) + FB
             forcesb[2 * (i) + 2,0] = (forcesb[2 * (i) + 2,0]) + FC
             
             
-#    if load_opt == 3:
-#        Interior = numpy.where(math.sqrt(coord[:, 2]** 2 + (coord[:, 3] - R)** 2) - (R - h / 2) < 0.001)
-#        LoadMat = mcat([Interior(1), 2 - Mag / 6])
-#        for i in mslice[2:(length(Interior) - 1)]:
-#            dx = coord(Interior(i), 2)
-#            dy = coord(Interior(i), 3) - R
-#            dL = sqrt(dx ** 2 + dy ** 2)
-#            if mod(i, 2) == 0:
-#                Loadx = 2 / 3 * Mag * dx / dL
-#                Loady = 2 / 3 * Mag * dy / dL
-#            else:
-#                Loadx = 1 / 3 * Mag * dx / dL
-#                Loady = 1 / 3 * Mag * dy / dL
-#                end
-#                
-#                Interior(i)
-#                1
-#                    
-#                Interior(i)
-#                2
-#                end
-#                    
-#                Interior(end)
-#                1
-#                end
-#                    
-#    if load_opt == 4:
-#        Interior = find(sqrt(coord(mslice[:], 2) **elpow** 2 + (coord(mslice[:], 3) - R) **elpow** 2) - (R - h / 2) < 0.001)
-#        Exterior = find(sqrt(coord(mslice[:], 2) **elpow** 2 + (coord(mslice[:], 3) - R) **elpow** 2) > (R + h / 2) - 0.001)
-#        
-#        DispMat = mcat([Interior(1), 2 - RadD])
-#        for i in mslice[2:(length(Interior) - 1)]:
-#            dx = coord(Interior(i), 2)
-#            dy = coord(Interior(i), 3) - R
-#            dL = sqrt(dx ** 2 + dy ** 2)
-#            Dx = RadD * dx / dL
-#            Dy = RadD * dy / dL
-#            
-#            Interior(i)
-#            1
-#            Dx
-#            Interior(i)
-#            2
-#            end
-#            
-#            Interior(end)
-#            1
-#    return forces, forcesb, DispMat, LoadMat
-    return forces, forcesb
+    if load_opt == 3:
+        Interior = numpy.where(math.sqrt(coord[:, 2]** 2 + (coord[:, 3] - R)** 2) - (R - h / 2.) < 0.001)
+        LoadMat = [Interior[1], 2, -Mag / 6]
+        for i in range(1,(len(Interior))):
+            dx = coord[Interior[i], 1]
+            dy = coord[Interior[i], 2] - R
+            dL = math.sqrt(dx ** 2 + dy ** 2)
+            if (i % 2) == 0:
+                Loadx = 2. / 3 * Mag * dx / dL
+                Loady = 2. / 3 * Mag * dy / dL
+            else:
+                Loadx = 1. / 3 * Mag * dx / dL
+                Loady = 1. / 3 * Mag * dy / dL
+                
+            LoadMat = [LoadMat, Interior(i), 1, Loadx]
+            LoadMat = [LoadMat, Interior(i), 2, Loady]
+                
+        LoadMat = [LoadMat, Interior.end, 1, 1./6*Mag];
+    
+    if load_opt == 4:
+        Interior = numpy.where(math.sqrt(coord[:, 2]** 2 + (coord[:, 3] - R)** 2) - (R - h / 2.) < 0.001)
+        Exterior = numpy.where(math.sqrt(coord[:, 2]** 2 + (coord[:, 3] - R)** 2) > (R + h / 2.) - 0.001)
+        
+        DispMat = ([Interior(1), 2, -RadD])
+        for i in range(1,(len(Interior))):
+            dx = coord[Interior[i], 1]
+            dy = coord[Interior[i], 2] - R
+            dL = math.sqrt(dx ** 2 + dy ** 2)
+            Dx = RadD * dx / dL
+            Dy = RadD * dy / dL
+            
+            DispMat = [DispMat, Interior[i], 1, Dx, Interior[i], 2, Dy]
+        DispMat = [DispMat, Interior.end, 1, RadD]    
+        
+    return forces, forcesb, DispMat, LoadMat
+#    return forces, forcesb
 
 
 def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_opt, m, DispMat, displ, LoadMat, n, forces, forcesb):
