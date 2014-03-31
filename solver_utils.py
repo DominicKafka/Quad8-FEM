@@ -22,7 +22,9 @@ def readsectionfile(filename):
     return section
 
 def read_input_file(filename):
+    """ Read sectioned input file for a FEM problem"""
 
+    #TODO: the proper types should be used rather than just float or int for everything
     import time
     from numpy import array
 
@@ -30,67 +32,36 @@ def read_input_file(filename):
 
     section = readsectionfile(filename)
 
-    # Read number of nodes
-    [[nnodes]] = section['Number_of_nodes']
+    scalarsections = ['Number_of_nodes',
+                      'Number_of_elements',
+                      'Plane_stress_or_strain',
+                      'Number_of_prescribed_displacements',
+                      'Number_of_nodal_loads',
+                      'Number_of_load_increments',
+                      'Number_of_MPCs',
+                      ]
 
-    #Read nodal coordinates
-    ndcoor = array(section['Nodal_coordinates'])
+    nnodes, nelem, plane, ndispl, ncload, nloadinc, nMPC = [int(section[s][0][0]) for s in scalarsections]
+    # TODO: plane should be of type bool
+
+    arraysections = ['Nodal_coordinates',
+                     'Element_connectivity',
+                     'Prescribed_displacements',
+                     'Nodal_loads',
+                     ]    
+
+    ndcoor, elnodes, displ, cload = [array(section[s]) for s in arraysections]
+    # TODO: elnodes should be integer
+
     nodes = ndcoor[:, 0]
     coor = ndcoor[:, 1:]
 
-    print nodes
-    print coor
-
-    # Read number of elements
-    [[nelem]] = section['Number_of_elements']
-
-    # Read if elements are plane stress or plain strain
-    [[plane]] = section['Plane_stress_or_strain']
-
-    # Read element number and element connectivity
-    elnodes = array(section['Element_connectivity'], int)
-
-    print nelem
-    print plane
-    print elnodes
-
-    # Read material constants
     [[elas, pois, t]] = section['Material_properties']
-    
-    print elas
-    print pois
-    print t    
-
-    # Read number of prescribed displacements
-    [[ndispl]] = section['Number_of_prescribed_displacements']
-
-    # Read prescribed displacements
-    displ = array(section['Prescribed_displacements'])
-    print displ
-    
-    # Read number of  nodal loads
-    [[ncload]] = section['Number_of_nodal_loads']
-    print ncload
-
-    # Read nodal loads
-    cload = array(section['Nodal_loads'])
-    print cload
-    
-    # Read number of load increments
-    [[nloadinc]] = section['Number_of_load_increments']
-    print nloadinc
-
-   
-    # Read number of MPCs
-    [[nMPC]] = section['Number_of_MPCs']
-    print nMPC
-    
 
     MasterDOF = []
     SlaveDOF = []
     
     toc = time.time()
     time = toc-tic
-    print time    
-    print 'Done reading input file '+filename+ ' in ' +str(time)+' seconds'
+    print 'Done reading input file {} in {} seconds'.format(filename, time)
     return nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF
