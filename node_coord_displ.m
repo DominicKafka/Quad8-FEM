@@ -1,4 +1,5 @@
-function [coord,displ,elnode,node,el] = node_coord_displ(h,l,m,n,load_opt)
+function [coord,displ,elnode,node] = node_coord_displ(h,l,m,n,load_opt)
+%FIXME: displ is only calculated if load_opt == 2, otherwise it is never defined.
 
 node = 0;
 deltx = l/(2*n);

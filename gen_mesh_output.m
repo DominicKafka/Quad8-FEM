@@ -1,4 +1,4 @@
-function gen_mesh_output(filen,node,coord,el,option,elnode,E,nu,t,load_opt,m,n,DispMat,l,displ,LoadMat,forces,forcesb)
+function gen_mesh_output(filen,node,coord,option,elnode,E,nu,t,load_opt,m,n,DispMat,l,displ,LoadMat,forces,forcesb)
 
 fid=fopen(filen,'w');
 fprintf(fid,'Number_of_nodes \n');

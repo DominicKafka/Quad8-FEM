@@ -78,7 +78,7 @@ def node_coord_displ(h, l, m, n, load_opt, R):
             elnode.append([el1, elnode1, elnode3, elnode4, elnode2, elnode5, elnode6, elnode7, elnode8])
             el = el + 1
 
-    return coord, displ, elnode, node, el
+    return coord, displ, elnode, node
     
 
 def nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD):

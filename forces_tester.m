@@ -12,6 +12,6 @@ Mag = 0
 R = 0
 RadD = 0
 V0 = 100
-[coord,displ,elnode,node,el] = node_coord_displ(h,l,m,n,load_opt);
+[coord,displ,elnode,node] = node_coord_displ(h,l,m,n,load_opt);
 
 [forces,forcesb,DispMat,LoadMat] = nodal_forces(h,m,V0,load_opt,coord,R,Mag,RadD) 
