@@ -6,8 +6,9 @@ Created on Mon Mar 31 09:39:32 2014
 """
 import math
 import numpy as np
-import scipy
+#import scipy
 from solver_utils import read_input_file
+from solver_utils import block_diag
 
 #ElType = '5B';
 #ElType = '7B';
@@ -54,13 +55,12 @@ for i in range(ndispl):
 print dof
 print Up
 pdof = np.where(dof == 0)
-fdof = np.where(dof == 0)
-fdof = np.setdiff1d(fdof, mdof)  
-fdof = np.setdiff1d(fdof, sdof)
-
+fdof = np.where(dof != 0)
+fdof = np.setdiff1d(fdof[0], mdof)  
+fdof = np.setdiff1d(fdof[0], sdof)
+print fdof
 # Initially guess that all free displacements are zero
-U = np.zeros(2 * nnodes, 1)
-#U(fdof,1) = zeros(length(fdof),1);
+U = np.zeros([2 * nnodes, 1])
 
 # Construct elasticity tensor C
 # If plane strain
@@ -72,24 +72,29 @@ else:
     nu = pois
 
 c = e / float(1 - nu ** 2)
-#matC = blkdiag([[c, c * nu], [c * nu, c]]), eye(2) * c * (1 - nu))
-matC = scipy.linalg.special_matrices.block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu))
+matC = block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu))
 
-print matC
+#print matC
+
 ndnum = range(2,(2 + NodesPerEl))
-[colpos, rowpos] = np.meshgrid(range(DofPerEl))
-#colpos = colpos(mslice[:]).cT
-#rowpos = rowpos(mslice[:]).cT
+[colpos, rowpos] = np.meshgrid(range(DofPerEl),range(DofPerEl))
+
+colpos = zip(*colpos)
+colpos = np.asarray(colpos).reshape(-1)
+rowpos = zip(*rowpos)
+rowpos = np.asarray(rowpos).reshape(-1)
+
 
 tol = 3e-5
 dUNrm = 1.0
 
-F = np.zeros(2 * nnodes, 1)
-LoadFac = (range(nloadinc)) / nloadinc
+F = np.zeros([2 * nnodes, 1])
+LoadFac = (np.array(range(1,nloadinc+1))) / float(nloadinc)
+print LoadFac
 
 # FIXME: this 12 should be a variable
-stress = np.zeros(nelem, 12)
-strain = np.zeros(nelem, 12)
+stress = np.zeros([nelem, 12])
+strain = np.zeros([nelem, 12])
 
 
 # monster_loop

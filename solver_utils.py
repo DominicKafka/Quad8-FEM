@@ -65,3 +65,29 @@ def read_input_file(filename):
     time = toc-tic
     print 'Done reading input file {} in {} seconds'.format(filename, time)
     return nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF
+
+def block_diag(*arrs):
+    import numpy as np
+    """Create a new diagonal matrix from the provided arrays.
+
+    Parameters
+    ----------
+    a, b, c, ... : ndarray
+        Input arrays.
+
+    Returns
+    -------
+    D : ndarray
+        Array with a, b, c, ... on the diagonal.
+
+    """
+    arrs = [np.asarray(a) for a in arrs]
+    shapes = np.array([a.shape for a in arrs])
+    out = np.zeros(np.sum(shapes, axis=0))
+
+    r, c = 0, 0
+    for i, (rr, cc) in enumerate(shapes):
+        out[r:r + rr, c:c + cc] = arrs[i]
+        r += rr
+        c += cc
+    return out
