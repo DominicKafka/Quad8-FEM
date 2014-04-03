@@ -46,15 +46,14 @@ def read_input_file(filename):
 
     arraysections = ['Nodal_coordinates',
                      'Element_connectivity',
-                     'Prescribed_displacements',
                      'Nodal_loads',
                      ]    
 
-    ndcoor, elnodes, displ, cload = [array(section[s]) for s in arraysections]
+    ndcoor, elnodes, cload = [array(section[s]) for s in arraysections]
     # TODO: elnodes should be integer
 
-    # sort the rows of displ
-    displ = displ[displ[:,0].argsort(),]
+    # sort the rows of displ - keep it as a list
+    displ = sorted(section['Prescribed_displacements'])
 
     nodes = ndcoor[:, 0]
     coor = ndcoor[:, 1:]

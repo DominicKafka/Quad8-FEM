@@ -40,25 +40,19 @@ dL_max = math.sqrt(dx_max ** 2 + dy_max ** 2)
 GraphOpt = 0
 
 # Find prescribed (pdof) and free (fdof) degrees of freedom
-dof = np.ones([nnodes*2, 1])
-Up = np.zeros([ndispl, 1])
-
-print displ
-for i in range(ndispl):
-    num = np.where(nodes == displ[i, 0])
-    print num[0]
-    pos = (num[0] * 2 + displ[i, 1])-1
-    print pos
-    dof[pos[0], 0] = 0
-    Up[i, 0] = displ[i, 2]
-
-print dof
-print Up
-pdof = np.where(dof == 0)
-fdof = np.where(dof != 0)
-fdof = np.setdiff1d(fdof[0], mdof)  
+# FIXME: the next line assumes 2d
+dof = np.ones([nnodes, 2])
+Up = []
+for node, dimension, displacement in displ:
+    dof[nodes.index(node), dimension-1] = 0
+    Up.append(displacement)
+Up = np.matrix(Up).T
+pdof = np.flatnonzero(dof == 0)
+fdof = np.flatnonzero(dof != 0)
+#TODO: check if fdof and pdof should actually be a set instead of an array
+fdof = np.setdiff1d(fdof[0], mdof)
 fdof = np.setdiff1d(fdof[0], sdof)
-print fdof
+
 # Initially guess that all free displacements are zero
 U = np.zeros([2 * nnodes, 1])
 
