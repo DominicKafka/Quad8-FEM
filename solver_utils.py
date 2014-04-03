@@ -55,7 +55,7 @@ def read_input_file(filename):
     # sort the rows of displ - keep it as a list
     displ = sorted(section['Prescribed_displacements'])
 
-    nodes = ndcoor[:, 0]
+    nodes = ndcoor[:, 0].tolist()
     coor = ndcoor[:, 1:]
 
     [[elas, pois, t]] = section['Material_properties']

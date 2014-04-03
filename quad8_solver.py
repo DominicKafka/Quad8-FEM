@@ -10,6 +10,13 @@ import numpy as np
 from solver_utils import read_input_file
 from block_diag import block_diag
 
+from scipy.io import loadmat
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+import checker
+
 #ElType = '5B';
 #ElType = '7B';
 #ElType = 'q4';
@@ -25,8 +32,13 @@ TotKvec = DofPerEl ** 2
 
 print 'Welcome to the Quad-8 Finite Element Program'
 
-filename = raw_input('Input filename (without extension) ? ')
-print filename
+#filename = raw_input('Input filename (without extension) ? ')
+#print filename
+case = 'Beam2by20'
+
+check = checker.build(loadmat(case + '.mat'))
+
+filename = case + '.inp'
 [nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, mdof, sdof] = read_input_file(filename)
 file_out = filename+'.out'
 
@@ -50,8 +62,11 @@ Up = np.matrix(Up).T
 pdof = np.flatnonzero(dof == 0)
 fdof = np.flatnonzero(dof != 0)
 #TODO: check if fdof and pdof should actually be a set instead of an array
-fdof = np.setdiff1d(fdof[0], mdof)
-fdof = np.setdiff1d(fdof[0], sdof)
+fdof = np.setdiff1d(fdof, mdof)
+fdof = np.setdiff1d(fdof, sdof)
+
+check('fdof', fdof+1)
+check('pdof', pdof+1)
 
 # Initially guess that all free displacements are zero
 U = np.zeros([2 * nnodes, 1])
@@ -67,7 +82,7 @@ else:
 
 c = e / float(1 - nu ** 2)
 matC = np.asmatrix(block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu)))
-#print matC
+check('matC', matC)
 
 ndnum = range(2,(2 + NodesPerEl))
 [colpos, rowpos] = np.meshgrid(range(DofPerEl),range(DofPerEl))
@@ -80,7 +95,7 @@ dUNrm = 1.0
 
 F = np.zeros([2 * nnodes, 1])
 LoadFac = (np.array(range(1,nloadinc+1))) / float(nloadinc)
-print LoadFac
+check('LoadFac', LoadFac)
 
 # FIXME: this 12 should be a variable
 stress = np.zeros([nelem, 12])

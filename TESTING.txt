@@ -1,0 +1,33 @@
+A note on testing the program
+
+Run a case in the Matlab or Octave version of the program:
+
+For instance:
+$ octave
+
+> quad4and8_ls_2013
+Enter "Beam2by20"
+
+Now save all the variables to a mat file in Matlab-compatible format
+> save -6 Beam2by20.mat
+
+Now we have all the variables calculated by Matlab/Octave for this run in a file, we can automatically check that we've got things right in Python
+
+$ ipyton
+> %pylab
+> from scipy.io import loadmat
+> checkvalues = loadmat('Beam2by20.mat')
+> checkvalues['nnodes']
+array([[165.]])
+
+The module checker.py supplies a build function which will return a check function to automate this process in a sensible way
+
+> import checker
+> check = checker.build(checkvalues)
+> check('nnodes', 165)
+
+No output is produced when the check is positive. However,
+
+> check('nnodes', 176)
+
+will produce useful output and also raise a ValueError so that the program will stop at this location
