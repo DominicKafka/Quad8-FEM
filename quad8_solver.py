@@ -10,8 +10,6 @@ import numpy as np
 from solver_utils import read_input_file
 from block_diag import block_diag
 
-from scipy.io import loadmat
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -36,7 +34,7 @@ print 'Welcome to the Quad-8 Finite Element Program'
 #print filename
 case = 'Beam2by20'
 
-check = checker.build(loadmat(case + '.mat'))
+check = checker.build(case + '.mat')
 
 filename = case + '.inp'
 [nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, mdof, sdof] = read_input_file(filename)

@@ -1,14 +1,14 @@
 from numpy import abs
 
 import logging
+from scipy.io import loadmat
 
-def build(checkvalues):
+
+def build(checkfile):
+    checkvalues = loadmat(checkfile, squeeze_me=True)
 
     def check(name, value, epsilon=1e-10):
         oldvalue = checkvalues[name]
-        # We need to do some checking of dimensions to compare correctly
-        if oldvalue.shape[0] == 1 or oldvalue.shape[1] == 1: # vector
-            oldvalue = oldvalue.flatten()
         if (abs(oldvalue - value) > epsilon).any():
             print "'{}' differs from the stored version!".format(name)
             print "Stored value:"
