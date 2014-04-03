@@ -32,7 +32,6 @@ def mesh_inputs():
     elif load_opt == 4:
         R = 2 * l / math.pi
         RadD = float(input('Radial displacement ? '))
-    R = 0
 
     filen = raw_input('Write output to which file ? ')
     return h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen
@@ -54,7 +53,7 @@ def node_coord_displ(h, l, m, n, load_opt, R):
             x = i * deltx
             y = j * delty - h / 2.
             coord.append([node, x, y])
-            if ((load_opt == 2) or (load_opt == 3) or (load_opt == 4)):
+            if load_opt in [2, 3, 4]:
                 u = (R - y) * math.sin(x / R) - x
                 v = R - (R - y) * math.cos(x / R) - y
                 if load_opt == 2:
@@ -192,7 +191,7 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_op
             fid.write('%5d 1 0.0 \n'% (i+1))
         for j in range((node - (2 * m)),node):
             fid.write('%5d 2 0.0 \n'% (j+1))
-    elif ((load_opt == 1) or (load_opt == 0)):
+    elif load_opt in [0, 1]:
         for i in range(2 * m + 1):
             fid.write('%5d 1 0.0 \n'% int(i+1))
         for j in range(2 * m + 1):
@@ -210,7 +209,7 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_op
         fid.write('0 \n')
     elif load_opt == 3:
         fid.write('%5d \n' % int(len(LoadMat)))
-    elif ((load_opt == 1) or (load_opt == 0)):
+    elif load_opt in [0, 1]:
         fid.write('%5d \n'% (2 * m + 1))
     elif load_opt == 4:
         fid.write(' 0 \n')
