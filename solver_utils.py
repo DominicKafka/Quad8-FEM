@@ -53,6 +53,9 @@ def read_input_file(filename):
     ndcoor, elnodes, displ, cload = [array(section[s]) for s in arraysections]
     # TODO: elnodes should be integer
 
+    # sort the rows of displ
+    displ = displ[displ[:,0].argsort(),]
+
     nodes = ndcoor[:, 0]
     coor = ndcoor[:, 1:]
 

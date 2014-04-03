@@ -42,7 +42,7 @@ GraphOpt = 0
 # Find prescribed (pdof) and free (fdof) degrees of freedom
 dof = np.ones([nnodes*2, 1])
 Up = np.zeros([ndispl, 1])
-displ = displ[displ[:,0].argsort(),]
+
 print displ
 for i in range(ndispl):
     num = np.where(nodes == displ[i, 0])
