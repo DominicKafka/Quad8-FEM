@@ -72,11 +72,8 @@ matC = np.asmatrix(block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - n
 ndnum = range(2,(2 + NodesPerEl))
 [colpos, rowpos] = np.meshgrid(range(DofPerEl),range(DofPerEl))
 
-colpos = zip(*colpos)
-colpos = np.asarray(colpos).reshape(-1)
-rowpos = zip(*rowpos)
-rowpos = np.asarray(rowpos).reshape(-1)
-
+colpos = colpos.flatten()
+rowpos = rowpos.flatten()
 
 tol = 3e-5
 dUNrm = 1.0
