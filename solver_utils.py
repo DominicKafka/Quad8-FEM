@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun Mar 30 14:01:10 2014
-
-@author: Dominic
-"""
-
 import logging
 
-def readsectionfile(filename):
-    """ Read a file containing string section names and array-like rows of numbers
 
-    This returns a dictionary with an entry for each section and parses the array entries into floats as a list of rows.
+def readsectionfile(filename):
+    """ Read a file containing string section names and rows of numbers
+
+    This returns a dictionary with an entry for each section and parses
+    the array entries into floats as a list of rows.
     """
     section = {}
+    sectionname = None
     with open(filename) as f:
         for line in f:
             try:
@@ -22,6 +19,7 @@ def readsectionfile(filename):
                 sectionname = line.strip()
                 section[sectionname] = []
     return section
+
 
 def read_input_file(filename):
     """ Read sectioned input file for a FEM problem"""
@@ -49,7 +47,7 @@ def read_input_file(filename):
     arraysections = ['Nodal_coordinates',
                      'Element_connectivity',
                      'Nodal_loads',
-                     ]    
+                     ]
 
     ndcoor, elnodes, cload = [array(section[s]) for s in arraysections]
     # TODO: elnodes should be integer
@@ -64,8 +62,8 @@ def read_input_file(filename):
 
     MasterDOF = []
     SlaveDOF = []
-    
+
     toc = time.time()
-    time = toc-tic
+    time = toc - tic
     logging.info('Done reading input file {} in {} seconds'.format(filename, time))
     return nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF
