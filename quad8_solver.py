@@ -8,7 +8,7 @@ import math
 import numpy as np
 #import scipy
 from solver_utils import read_input_file
-from solver_utils import block_diag
+from block_diag import block_diag
 
 #ElType = '5B';
 #ElType = '7B';
@@ -66,8 +66,7 @@ else:
     nu = pois
 
 c = e / float(1 - nu ** 2)
-matC = block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu))
-
+matC = np.asmatrix(block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu)))
 #print matC
 
 ndnum = range(2,(2 + NodesPerEl))
