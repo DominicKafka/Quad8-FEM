@@ -5,6 +5,8 @@ Created on Sun Mar 30 14:01:10 2014
 @author: Dominic
 """
 
+import logging
+
 def readsectionfile(filename):
     """ Read a file containing string section names and array-like rows of numbers
 
@@ -65,5 +67,5 @@ def read_input_file(filename):
     
     toc = time.time()
     time = toc-tic
-    print 'Done reading input file {} in {} seconds'.format(filename, time)
+    logging.info('Done reading input file {} in {} seconds'.format(filename, time))
     return nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF
