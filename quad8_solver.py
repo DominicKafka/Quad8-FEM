@@ -16,7 +16,7 @@ from block_diag import block_diag
 ElType = 'q8'
 NodesPerEl = 0
 if ElType in ['q4', '5B', '7B']:
-    NodesPerEl == 4
+    NodesPerEl = 4
 elif ElType == 'q8':
     NodesPerEl = 8
 
