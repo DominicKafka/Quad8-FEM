@@ -24,7 +24,8 @@ def readsectionfile(filename):
 def read_input_file(filename):
     """ Read sectioned input file for a FEM problem"""
 
-    #TODO: the proper types should be used rather than just float or int for everything
+    #TODO: the proper types should be used rather than just float or int for
+    #everything
     import time
     from numpy import array
 
@@ -41,7 +42,8 @@ def read_input_file(filename):
                       'Number_of_MPCs',
                       ]
 
-    nnodes, nelem, plane, ndispl, ncload, nloadinc, nMPC = [int(section[s][0][0]) for s in scalarsections]
+    nnodes, nelem, plane, ndispl, ncload, nloadinc, nMPC = (
+        [int(section[s][0][0]) for s in scalarsections])
     # TODO: plane should be of type bool
 
     arraysections = ['Nodal_coordinates',
@@ -65,5 +67,7 @@ def read_input_file(filename):
 
     toc = time.time()
     time = toc - tic
-    logging.info('Done reading input file {} in {} seconds'.format(filename, time))
-    return nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF
+    (logging.info
+    ('Done reading input file {} in {} seconds'.format(filename, time)))
+    return (nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t,
+         ndispl, displ, ncload, cload, nloadinc, MasterDOF, SlaveDOF)

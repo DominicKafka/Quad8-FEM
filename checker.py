@@ -17,6 +17,7 @@ def build(checkfile):
             print value
             raise ValueError
         else:
-            logging.debug('{} checked against stored value successfully'.format(name))
+            (logging.
+            debug('{} checked against storedvalue successfully'.format(name)))
 
     return check

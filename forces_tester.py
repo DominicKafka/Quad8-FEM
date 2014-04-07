@@ -29,7 +29,8 @@ V0 = 100.
 
 coord, displ, elnode, node = node_coord_displ(h, l, m, n, load_opt, R)
 
-forces, forcesb, DispMat, LoadMat = nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD)
+forces, forcesb, DispMat, LoadMat = (nodal_forces(h, m, V0, load_opt,
+coord, R, Mag, RadD))
 
 print forces
 print forcesb

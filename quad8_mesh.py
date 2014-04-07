@@ -14,6 +14,8 @@ h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen = mesh_inputs()
 
 coord, displ, elnode, node, el = node_coord_displ(h, l, m, n, load_opt, R)
 
-forces, forcesb, DispMat, LoadMat = nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD)
+forces, forcesb, DispMat, LoadMat = (nodal_forces(h, m, V0, load_opt, coord,
+ R, Mag, RadD))
 
-mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_opt, m, DispMat, displ, LoadMat, n, forces, forcesb)
+(mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_opt,
+ m, DispMat, displ, LoadMat, n, forces, forcesb))

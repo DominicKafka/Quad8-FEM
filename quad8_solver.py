@@ -34,7 +34,8 @@ print 'Welcome to the Quad-8 Finite Element Program'
 #print filename
 case = 'Beam2by20'
 
-check = checker.build(case + '.mat')
+#check = checker.build(case + '.mat')
+#check = checker.build(case + '.inp')
 
 filename = case + '.inp'
 [nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl, displ, ncload, cload, nloadinc, mdof, sdof] = read_input_file(filename)
@@ -63,8 +64,8 @@ fdof = np.flatnonzero(dof != 0)
 fdof = np.setdiff1d(fdof, mdof)
 fdof = np.setdiff1d(fdof, sdof)
 
-check('fdof', fdof+1)
-check('pdof', pdof+1)
+#check('fdof', fdof+1)
+#check('pdof', pdof+1)
 
 # Initially guess that all free displacements are zero
 U = np.zeros([2 * nnodes, 1])
@@ -80,7 +81,7 @@ else:
 
 c = e / float(1 - nu ** 2)
 matC = np.asmatrix(block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu)))
-check('matC', matC)
+#check('matC', matC)
 
 ndnum = range(2,(2 + NodesPerEl))
 [colpos, rowpos] = np.meshgrid(range(DofPerEl),range(DofPerEl))
@@ -93,7 +94,7 @@ dUNrm = 1.0
 
 F = np.zeros([2 * nnodes, 1])
 LoadFac = (np.array(range(1,nloadinc+1))) / float(nloadinc)
-check('LoadFac', LoadFac)
+#check('LoadFac', LoadFac)
 
 # FIXME: this 12 should be a variable
 stress = np.zeros([nelem, 12])

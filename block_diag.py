@@ -9,6 +9,7 @@ import numpy as np
 
 __all__ = ['block_diag']
 
+
 def block_diag(*arrs):
     """Create a new diagonal matrix from the provided arrays.
 
@@ -34,8 +35,9 @@ def block_diag(*arrs):
         c += cc
     return out
 
+
 def test_block_diag():
-    x = block_diag(np.eye(2), [[1,2],[3,4],[5,6]], [[1, 2, 3]])
+    x = block_diag(np.eye(2), [[1, 2], [3, 4], [5, 6]], [[1, 2, 3]])
     assert np.all(x == [[1, 0, 0, 0, 0, 0, 0],
                         [0, 1, 0, 0, 0, 0, 0],
                         [0, 0, 1, 2, 0, 0, 0],
