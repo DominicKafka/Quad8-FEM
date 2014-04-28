@@ -110,3 +110,19 @@ def B_Quad8(xi, eta, X, NL_flag):
 
     B = dxidX * D  # Shape function derivatives wrt x and y: Eq.(2.39)
     return B, detJ
+
+
+def Fvec_to_Fmat(Fvec):
+    import numpy as np
+    Fmat = np.matrix([[Fvec[0], 0, 0.5 * Fvec[2], 0.5 * Fvec[2]],
+        [0, Fvec[1], 0.5 * Fvec[3], 0.5 * Fvec[3]],
+        [0, Fvec[2], 0.5 * Fvec[0], 0.5 * Fvec[0]],
+        [Fvec[3], 0, 0.5 * Fvec[1], 0.5 * Fvec[1]]])  # Eq.(4.86)
+    return Fmat
+
+
+def Svec_to_Smat(Svec=None):
+    import numpy as np
+    Smat = np.matrix([[Svec[0], 0, Svec[2], 0], [0, Svec[1], 0, Svec[2]],
+        [Svec[2], 0, Svec[1], 0], [0, Svec[2], 0, Svec[0]]])  # Eq.(4.87)
+    return Smat

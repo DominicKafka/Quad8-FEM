@@ -2,7 +2,7 @@
 
 import unittest
 import numpy as np
-from B_Quad8 import B_Quad8
+from solver_utils import B_Quad8
 
 
 class B_Quad8TestCase(unittest.TestCase):
