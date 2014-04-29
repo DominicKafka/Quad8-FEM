@@ -52,6 +52,7 @@ def read_input_file(filename):
                      ]
 
     ndcoor, elnodes, cload = [array(section[s]) for s in arraysections]
+    elnodes = array(elnodes, int)
     # TODO: elnodes should be integer
 
     # sort the rows of displ - keep it as a list

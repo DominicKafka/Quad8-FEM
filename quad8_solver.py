@@ -6,9 +6,11 @@ Created on Mon Mar 31 09:39:32 2014
 """
 import math
 import numpy as np
-#import scipy
+from scipy.sparse import coo_matrix
 from solver_utils import read_input_file
+from solver_utils import Quad8_Res_and_Tangent
 from block_diag import block_diag
+import time
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +21,7 @@ import checker
 #ElType = '7B';
 #ElType = 'q4';
 ElType = 'q8'
+
 NodesPerEl = 0
 if ElType in ['q4', '5B', '7B']:
     NodesPerEl = 4
@@ -41,6 +44,8 @@ filename = case + '.inp'
 ([nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl,
 displ, ncload, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
 file_out = filename + '.out'
+sdof = np.array(sdof)
+check('elnodes', elnodes)
 
 #Get maximum dimensions of model
 dx_max = max(coor[:, 0]) - min(coor[:, 0])
@@ -85,7 +90,7 @@ matC = (np.asmatrix(
     block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu))))
 check('matC', matC)
 
-ndnum = range(2, (2 + NodesPerEl))
+ndnum = range(1, (1 + NodesPerEl))
 [colpos, rowpos] = np.meshgrid(range(DofPerEl), range(DofPerEl))
 
 colpos = colpos.flatten()
@@ -102,8 +107,145 @@ check('LoadFac', LoadFac)
 stress = np.zeros([nelem, 12])
 strain = np.zeros([nelem, 12])
 
+for iter_load in range(nloadinc):
+    print '---------------------------------------------------------------'
+    print '                      Load increment ' + str(iter_load + 1)
+    print '---------------------------------------------------------------'
+    # Correct fraction of prescribed displacement applied to pdof
+    U[pdof, :] = LoadFac[iter_load] * Up
+    # If MPCs are present, compute slave DOF values
+    if (sdof.size == True):
+        [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
+    else:
+        P_mpc = np.matrix([])
+        d2PdUm2_Rs = []
 
-# monster_loop
+    ResNrm = 1.
+
+    itera = 0
+    while (ResNrm > tol) or (dUNrm > tol):
+        tic = time.time()
+        itera = itera + 1
+        #Main loop over elements. Compute k_elem and assemble
+        #Initialize global stiffness matrix vectors;
+        row_vec = np.matrix(np.zeros([TotKvec * nelem, 1]))
+        col_vec = np.matrix(np.zeros([TotKvec * nelem, 1]))
+        stiff_vec = np.matrix(np.zeros([TotKvec * nelem, 1]))
+        Residual = np.matrix(np.zeros([2 * nnodes, 1]))
+        #Initialize global load vector
+        F_ext = np.matrix(np.zeros([2 * nnodes, 1]))
+        pos_vec = 0
+        for i in range(nelem):
+            # Find reference coordinates of element nodes
+            X = coor[elnodes[i, ndnum], 0]
+            Y = coor[elnodes[i, ndnum], 1]
+            # Get global degree of freedom numbers per element
+            pg = np.matrix(np.zeros([DofPerEl, 1], int))
+            pg[::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)] - 1).T
+            pg[1::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)]).T
+            # Get current guess for nodal displacements
+            U_el = np.matrix(U[pg], float).T
+            XY = np.matrix([X, Y]).T
+
+            if ElType == 'q4':
+                [El_res, k_elem, El_stress, El_strain] = Quad4_Res_and_Tangent(
+                    XY, U_el, matC, t)
+            elif ElType == '5B':
+                [El_res, k_elem, El_stress, El_strain] = FiveB_Res_and_Tangent(
+                    XY, U_el, matC, t)
+            elif ElType == '7B':
+                [El_res, k_elem, El_stress, El_strain] = (
+                    SevenB_Res_and_Tangent(XY, U_el, matC, t))
+            elif ElType == 'q8':
+                [El_res, k_elem, El_stress, El_strain] = Quad8_Res_and_Tangent(
+                    XY, U_el, matC, t)
+            stress[i, :] = El_stress.T
+            strain[i, :] = El_strain.T
+            # Assemble residual
+            print np.shape(El_res)
+            print np.shape(Residual[pg])
+            Residual[pg] = np.matrix(Residual[pg], float) + El_res
+            # Assemble k_elem into sparse k_global using vectors
+            for b in range(TotKvec):
+                row_vec[TotKvec * i + b, 0] = pg[rowpos]
+                col_vec[TotKvec * i + b, 0] = pg[colpos]
+                stiff_vec[TotKvec * i + b, 0] = k_elem[b]
+            # End of main loop over elements
+
+        # Assemble k_global from vectors
+        k_global = coo_matrix((stiff_vec, (row_vec, col_vec)),
+                      shape=(2 * nnodes, 2 * nnodes))
+        k_global = k_global.todense().T
+        #clear(mstring('row_vec'), mstring('col_vec'), mstring('stiff_vec'))
+        finish = time.toc()
+        time = finish - start
+        print 'Done assembling stiffness matrix:', time, 'seconds.'
+
+        # Add nodal loads to global load vector
+        for i in range(ncload):
+            p = np.where(nodes == cload(i, 1))
+            pos = (p - 1) * 2 + cload(i, 2)
+            F_ext[pos, 0] = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
+
+        # Subtract internal nodal loads
+        F = Residual - F_ext
+
+        ResNrm = norm(F[fdof, 1])
+        if itera == 1:
+            if ResNrm > 1e-4:
+                ResNrm0 = ResNrm
+            else:
+                ResNrm0 = 1
+
+        ResNrm = ResNrm / ResNrm0
+        print ('Normalized residual at start of iteration ',
+        str(itera), '    = ', str(ResNrm))
+        # Solve update of free dof's
+        # Solution for non-symmetric stiffness matrix
+
+        Kff = k_global[fdof, fdof]
+        Pf = F[fdof]
+        Kfm = k_global[fdof, mdof] + k_global[fdof, sdof] * P_mpc
+        Kmm = (k_global[mdof, mdof] + k_global[mdof, sdof] * P_mpc +
+        P_mpc.T * k_global[sdof, mdof] +
+        P_mpc.T * k_global[sdof, sdof] * P_mpc + d2PdUm2_Rs)
+        # Define RHS
+        Pm = F(mdof) + P_mpc.T * (F(sdof))
+        Pa = [Pf, Pm]
+        Kaa = np.matrix([Kff, Kfm], [Kfm.T, Kmm])
+
+        finish = time.toc()
+        time2 = start - finish
+        print 'Done assembling stiffness matrix:', time2, 'seconds.'
+
+        start2 = time.tic()
+
+        deltaUf = -Kaa / Pa
+
+        finish = time.time() - start2
+        print 'Done solving system:', finish, 'seconds.'
+
+        dUNrm = norm(deltaUf) / dL_max
+        print 'Normalized displacement update                 = ', str(dUNrm)
+        print '                    --------------------'
+        # Sort Uf and Ub into A
+        U[fdof, 0] = U[fdof, 0] + deltaUf[:length(fdof)]
+        if not isempty(sdof):
+            U[mdof, 0] = U[mdof, 0] + deltaUf[:(length(fdof))]
+            [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
+
+        AllResNrm[itera] = ResNrm        # ok<SAGROW>
+        AlldUNrm[itera] = dUNrm        # ok<SAGROW>
+    # Get support reactions
+    Fp = F[pdof]
+
+    print ('Load increment ', str(iter_load), ' converged after ',
+    str(itera), ' iterations.')
+    All_iter[iter_load] = itera        # ok<SAGROW>
+    All_soln[(1 + nnodes * (iter_load - 1)):(nnodes * iter_load), :] = (
+        np.matrix([[U[1:2:2 * nnodes]], [U[2:2:2 * nnodes]]]))
+
+
 
 
 #Compute nodal loads, Von Mises and Tresca
