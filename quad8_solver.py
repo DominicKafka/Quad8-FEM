@@ -96,6 +96,7 @@ ndnum = range(1, (1 + NodesPerEl))
 colpos = colpos.flatten()
 rowpos = rowpos.flatten()
 
+
 tol = 3e-5
 dUNrm = 1.0
 
@@ -104,8 +105,8 @@ LoadFac = (np.array(range(1, nloadinc + 1))) / float(nloadinc)
 check('LoadFac', LoadFac)
 
 # FIXME: this 12 should be a variable
-stress = np.zeros([nelem, 12])
-strain = np.zeros([nelem, 12])
+stress = np.matrix(np.zeros([nelem, 12]))
+strain = np.matrix(np.zeros([nelem, 12]))
 
 for iter_load in range(nloadinc):
     print '---------------------------------------------------------------'
@@ -137,12 +138,12 @@ for iter_load in range(nloadinc):
         pos_vec = 0
         for i in range(nelem):
             # Find reference coordinates of element nodes
-            X = coor[elnodes[i, ndnum], 0]
-            Y = coor[elnodes[i, ndnum], 1]
+            X = coor[elnodes[i, ndnum] - 1, 0]
+            Y = coor[elnodes[i, ndnum] - 1, 1]
             # Get global degree of freedom numbers per element
             pg = np.matrix(np.zeros([DofPerEl, 1], int))
-            pg[::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)] - 1).T
-            pg[1::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)]).T
+            pg[::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)] - 2).T
+            pg[1::2, 0] = np.matrix(2 * elnodes[i, 1:(1 + NodesPerEl)] - 1).T
             # Get current guess for nodal displacements
             U_el = np.matrix(U[pg], float).T
             XY = np.matrix([X, Y]).T
@@ -162,30 +163,31 @@ for iter_load in range(nloadinc):
             stress[i, :] = El_stress.T
             strain[i, :] = El_strain.T
             # Assemble residual
-            print np.shape(El_res)
-            print np.shape(Residual[pg])
-            Residual[pg] = np.matrix(Residual[pg], float) + El_res
+            Residual[pg, 0] = Residual[pg, 0] + El_res
             # Assemble k_elem into sparse k_global using vectors
-            for b in range(TotKvec):
-                row_vec[TotKvec * i + b, 0] = pg[rowpos]
-                col_vec[TotKvec * i + b, 0] = pg[colpos]
-                stiff_vec[TotKvec * i + b, 0] = k_elem[b]
+            k = TotKvec * i + np.matrix(range(TotKvec)).T
+            row_vec[k, 0] = pg[rowpos, 0]
+            col_vec[k, 0] = pg[colpos, 0]
+            k_elem = np.matrix(k_elem.flatten()).T
+            stiff_vec[k, 0] = k_elem[0:TotKvec, 0]
             # End of main loop over elements
 
         # Assemble k_global from vectors
-        k_global = coo_matrix((stiff_vec, (row_vec, col_vec)),
-                      shape=(2 * nnodes, 2 * nnodes))
+        k_global = coo_matrix((stiff_vec.T.tolist()[0], (row_vec.T.tolist()[0],
+             col_vec.T.tolist()[0])), shape=(2 * nnodes, 2 * nnodes))
         k_global = k_global.todense().T
         #clear(mstring('row_vec'), mstring('col_vec'), mstring('stiff_vec'))
-        finish = time.toc()
-        time = finish - start
+        toc = time.time()
+        time = toc - tic
         print 'Done assembling stiffness matrix:', time, 'seconds.'
 
         # Add nodal loads to global load vector
         for i in range(ncload):
-            p = np.where(nodes == cload(i, 1))
-            pos = (p - 1) * 2 + cload(i, 2)
-            F_ext[pos, 0] = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
+            p = np.where(nodes == cload[i, 0])
+            pos = (p[0]) * 2 + cload[i, 1] - 1
+            pos = np.array(pos, int)
+            ans = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
+            F_ext[pos, 0] = ans[0, 0]
 
         # Subtract internal nodal loads
         F = Residual - F_ext
