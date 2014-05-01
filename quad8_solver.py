@@ -132,6 +132,8 @@ for iter_load in range(nloadinc):
     itera = 0
 
     while (ResNrm > tol) or (dUNrm > tol):
+        check = checker.build('bigloop.mat')
+
         tic = time.time()
         itera = itera + 1
         #Main loop over elements. Compute k_elem and assemble
@@ -144,6 +146,7 @@ for iter_load in range(nloadinc):
         F_ext = np.matrix(np.zeros([2 * nnodes, 1]))
         pos_vec = 0
         for i in range(nelem):
+            check = checker.build('nelemloop.mat')
             # Find reference coordinates of element nodes
             X = coor[elnodes[i, ndnum] - 1, 0]
             Y = coor[elnodes[i, ndnum] - 1, 1]
@@ -154,6 +157,7 @@ for iter_load in range(nloadinc):
             # Get current guess for nodal displacements
             U_el = np.matrix(U[pg], float).T
             XY = np.matrix([X, Y]).T
+
 
             if ElType == 'q4':
                 [El_res, k_elem, El_stress, El_strain] = Quad4_Res_and_Tangent(
@@ -169,35 +173,59 @@ for iter_load in range(nloadinc):
                     XY, U_el, matC, t)
             stress[i, :] = El_stress.T
             strain[i, :] = El_strain.T
+
             # Assemble residual
             Residual[pg, 0] = Residual[pg, 0] + El_res
+
             # Assemble k_elem into sparse k_global using vectors
             k = TotKvec * i + np.matrix(range(TotKvec)).T
             row_vec[k, 0] = pg[rowpos, 0]
             col_vec[k, 0] = pg[colpos, 0]
             k_elem = np.matrix(k_elem.flatten()).T
             stiff_vec[k, 0] = k_elem[0:TotKvec, 0]
+
+            #if (i == 0) and (itera == 1):
+                #check('shape_row_vec', np.shape(row_vec))
+                #check('shape_col_vec', np.shape(col_vec))
+                #check('shape_stiff_vec', np.shape(stiff_vec))
+                #check('row_vec', row_vec)  # gives 'memory error'
+                #check('col_vec', col_vec)  # gives 'memory error'
+                #check('k_elem', k_elem)  # gives 'memory error'
+                #check('stiff_vec', stiff_vec) # gives 'memory error'
+                #check('some_stiff_vec', some_stiff_vec.T)
+                #gives error though identical
+                #check('U_el', U_el)
+                #check('XY', XY)
+                #check('stress', stress)
+                #check('strain', strain)
+                #check('Residual', Residual)
             # End of main loop over elements
 
+        #check = checker.build('bigloop.mat')
         # Assemble k_global from vectors
         k_global = coo_matrix((stiff_vec.T.tolist()[0], (row_vec.T.tolist()[0],
              col_vec.T.tolist()[0])), shape=(2 * nnodes, 2 * nnodes))
         k_global = k_global.todense().T
-        #clear(mstring('row_vec'), mstring('col_vec'), mstring('stiff_vec'))
+        #check('k_global', k_global)  # KeyError: 'k_global'
         toc = time.time()
         finish = toc - tic
         print 'Done assembling stiffness matrix:', finish, 'seconds.'
 
         # Add nodal loads to global load vector
         for i in range(ncload):
+            #check = checker.build('ncloadloop.mat')
             p = np.where(nodes == cload[i, 0])
             pos = (p[0]) * 2 + cload[i, 1] - 1
             pos = np.array(pos, int)
+            bob = F_ext[pos, 0]
             ans = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
             F_ext[pos, 0] = ans[0, 0]
+            #if i == 4:
+            #    check('F_ext', F_ext.T)
 
         # Subtract internal nodal loads
         F = Residual - F_ext
+        #check('F', F.T)
 
         ResNrm = np.linalg.norm(F[fdof, 0])
         if itera == 1:
@@ -207,16 +235,19 @@ for iter_load in range(nloadinc):
                 ResNrm0 = 1
 
         ResNrm = ResNrm / ResNrm0
-        print ('Normalized residual at start of iteration ' +
-        str(itera) + ' = ' + str(ResNrm))
+        #check('ResNrm', ResNrm)
+        print ('Normalized residual at start of iteration ', itera, ' = ',
+        ResNrm)
         # Solve update of free dof's
         # Solution for non-symmetric stiffness matrix
 
         Kff = k_global[np.ix_(fdof, fdof)]
+        #check('Kff', Kff)
         Pf = F[fdof]
+        #check('Pf', Pf.T)
         #print k_global[np.ix_(fdof, mdof)]
         # Define RHS
-        if (mdof.size == True):
+        if (mdof.size > 0):
             Kfm = (k_global[np.ix_(fdof, mdof)] +
                 k_global[np.ix_(fdof, sdof)] * P_mpc)
             Kmm = (k_global[np.ix_(mdof, mdof)] + k_global[np.ix_(mdof, sdof)]
@@ -229,39 +260,48 @@ for iter_load in range(nloadinc):
             Kaa = Kff
             Pa = Pf
 
+        #check('Kaa', Kaa)
+        #check('Pa', Pa.T)
         toc = time.time()
         finish = toc - tic
         print 'Done assembling stiffness matrix:', finish, 'seconds.'
 
         tic = time.time()
 
-        LKaa = np.linalg.cholesky(Kaa)
-        temp = np.linalg.solve(LKaa, Pa)
-        deltaUf = np.linalg.solve(LKaa.T, temp)
+        #LKaa = np.linalg.cholesky(Kaa)
+        #temp = np.linalg.solve(LKaa, Pa)
+        #deltaUf = np.linalg.solve(LKaa.T, temp)
 
+        deltaUf = -1 * np.linalg.solve(Kaa, Pa)
+
+        #check('deltaUf', deltaUf.T)
         finish = time.time() - tic
         print 'Done solving system:', finish, 'seconds.'
 
         dUNrm = np.linalg.norm(deltaUf) / dL_max
-        print 'Normalized displacement update                 = ' + str(dUNrm)
+        print 'Normalized displacement update                 = ', dUNrm
         print '                    --------------------'
         # Sort Uf and Ub into A
         temp = deltaUf[:len(fdof)]
         U[fdof, 0] = U[fdof, 0] + temp.T.tolist()[0]
-        if (sdof.size == True):
+        #check('U', U.T)
+        if (sdof.size > 0):
             U[mdof, 0] = U[mdof, 0] + deltaUf[:(len(fdof))]
             [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
 
         AllResNrm.append(ResNrm)  # ok<SAGROW>
         AlldUNrm.append(dUNrm)  # ok<SAGROW>
+
     # Get support reactions
+
     Fp = F[pdof]
 
     print ('Load increment ', (iter_load + 1), ' converged after ', itera,
     ' iterations.')
     All_iter.append(itera)  # ok<SAGROW>
-    All_soln[nnodes * iter_load:nnodes * (iter_load + 1), :] = (
-        np.array([U[0:2 * nnodes:2], U[1:2 * nnodes:2]]))
+    for i in range(nnodes - 1):
+        All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
+
 
 
 #Compute nodal loads, Von Mises and Tresca

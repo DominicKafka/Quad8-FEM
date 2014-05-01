@@ -7,7 +7,7 @@ from scipy.io import loadmat
 def build(checkfile):
     checkvalues = loadmat(checkfile, squeeze_me=True)
 
-    def check(name, value, epsilon=1e-10):
+    def check(name, value, epsilon=5e-8):
         oldvalue = checkvalues[name]
         if (abs(oldvalue - value) > epsilon).any():
             print "'{}' differs from the stored version!".format(name)
@@ -15,6 +15,8 @@ def build(checkfile):
             print oldvalue
             print "Calculated value"
             print value
+            print "Difference"
+            print oldvalue - value
             raise ValueError
         else:
             (logging.
