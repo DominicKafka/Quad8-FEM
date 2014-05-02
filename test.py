@@ -119,7 +119,7 @@ class MeshTestCase(unittest.TestCase):
         coord, displ, elnode, node, el = node_coord_displ(h, l, m, n, load_opt, R)
         self.assertEqual(node, 3221, "Incorrect number of nodes generated")
         # TODO: Fix this check
-        self.assertEqual(len(elnode), node, "Elnode is the wrong length")
+        self.assertEqual(len(elnode), el, "Elnode is the wrong length")
 
 if __name__ == '__main__':
     unittest.main()
