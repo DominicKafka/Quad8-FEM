@@ -42,8 +42,14 @@ check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
 
 filename = case + '.inp'
-([nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl,
-displ, ncload, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
+([ndcoor, nodes, coor, plane, elnodes, elas, pois, t,
+displ, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
+
+nnodes = len(ndcoor)
+nelem = len(elnodes)
+ndispl = len(displ)
+ncload = len(cload)
+
 file_out = filename + '.out'
 sdof = np.array(sdof)
 mdof = np.array(mdof)
@@ -275,8 +281,8 @@ for iter_load in range(nloadinc):
             U[mdof, 0] = U[mdof, 0] + deltaUf[:(len(fdof))]
             [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
 
-        AllResNrm.append(ResNrm)  # ok<SAGROW>
-        AlldUNrm.append(dUNrm)  # ok<SAGROW>
+        AllResNrm.append(ResNrm)
+        AlldUNrm.append(dUNrm)
 
         if (itera == 1) and (iter_load == 0):
             check = checker.build('bigloop.mat')
@@ -296,7 +302,7 @@ for iter_load in range(nloadinc):
 
     print ('Load increment ', (iter_load + 1), ' converged after ', itera,
     ' iterations.')
-    All_iter.append(itera)  # ok<SAGROW>
+    All_iter.append(itera)
     for i in range(nnodes - 1):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
 
