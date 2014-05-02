@@ -41,8 +41,14 @@ check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
 
 filename = case + '.inp'
-([nnodes, ndcoor, nodes, coor, nelem, plane, elnodes, elas, pois, t, ndispl,
-displ, ncload, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
+([ndcoor, nodes, coor, plane, elnodes, elas, pois, t,
+displ, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
+
+nnodes = len(ndcoor)
+nelem = len(elnodes)
+ndispl = len(displ)
+ncload = len(cload)
+
 file_out = filename + '.out'
 sdof = np.array(sdof)
 mdof = np.array(mdof)
