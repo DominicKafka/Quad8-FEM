@@ -109,8 +109,9 @@ for iter_load = 1:nloadinc;
             pg(1:2:end) = 2*elnodes(i,2:(1+NodesPerEl))-1;
             pg(2:2:end) = 2*elnodes(i,2:(1+NodesPerEl));
             % Get current guess for nodal displacements
-            U_el = U(pg);
+			U_el = U(pg);
             XY   = [X Y];
+			
             switch ElType
                 case 'q4'
                     [El_res,k_elem,El_stress,El_strain] = Quad4_Res_and_Tangent(XY,U_el,matC,t);
@@ -129,6 +130,15 @@ for iter_load = 1:nloadinc;
             row_vec(TotKvec*(i-1)+(1:TotKvec),1)   = pg(rowpos);
             col_vec(TotKvec*(i-1)+(1:TotKvec),1)   = pg(colpos);
             stiff_vec(TotKvec*(i-1)+(1:TotKvec),1) = k_elem(1:TotKvec);
+			if (i == 5) && (iter==1) && (iter_load == 1)
+				shape_row_vec = size(row_vec);
+				shape_col_vec = size(col_vec);
+				shape_stiff_vec = size(stiff_vec);
+				some_stiff_vec = stiff_vec(TotKvec*(i-1)+(1:TotKvec),1);
+				size(some_stiff_vec);
+				save -6 nelemloop.mat
+			end
+			
         end;  % End of main loop over elements
         % Assemble k_global from vectors
         k_global = sparse(row_vec,col_vec,stiff_vec,2*nnodes,2*nnodes);
@@ -141,11 +151,14 @@ for iter_load = 1:nloadinc;
             p = find(nodes==cload(i,1));
             pos = (p-1)*2+cload(i,2);
             F_ext(pos,1) = F_ext(pos,1)+LoadFac(iter_load)*cload(i,3);
+			if (i == 5) && (iter==1) && (iter_load == 1)
+				save -6 ncloadloop.mat
+			end
         end        
         
         % Subtract internal nodal loads
         F = Residual - F_ext;
-        
+
         ResNrm = norm(F(fdof,1));
         if iter == 1
             if ResNrm > 1e-4
@@ -154,7 +167,8 @@ for iter_load = 1:nloadinc;
                 ResNrm0 = 1;
             end
         end
-        ResNrm = ResNrm/ResNrm0;
+
+        ResNrm = ResNrm/ResNrm0
         PrntResStr = ['Normalized residual at start of iteration ',num2str(iter),'    = ',num2str(ResNrm,'%10.6e')];
         disp(PrntResStr)
         
@@ -196,6 +210,13 @@ for iter_load = 1:nloadinc;
         end
         AllResNrm(iter) = ResNrm; %#ok<SAGROW>
         AlldUNrm(iter)  = dUNrm; %#ok<SAGROW>
+		
+		if (iter == 1) && (iter_load == 1)
+			k_global = full(k_global);
+			size(k_global);
+			save -6 bigloop.mat
+		end
+
     end
     % Get support reactions
     Fp = F(pdof);
@@ -203,6 +224,7 @@ for iter_load = 1:nloadinc;
     disp(['Load increment ',num2str(iter_load),' converged after ',num2str(iter),' iterations.'])
     All_iter(iter_load) = iter; %#ok<SAGROW>
     All_soln(1+nnodes*(iter_load-1):nnodes*iter_load,:) = [U(1:2:2*nnodes) U(2:2:2*nnodes)];
+
 end
 tic;
 
