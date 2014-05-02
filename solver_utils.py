@@ -65,7 +65,7 @@ def read_input_file(filename):
 
     MasterDOF = []
     SlaveDOF = []
-    
+
     # Check for consistency
     assert nnodes == len(ndcoor)
     assert nelem == len(elnodes)
@@ -76,7 +76,8 @@ def read_input_file(filename):
     time = toc - tic
     (logging.info
     ('Done reading input file {} in {} seconds'.format(filename, time)))
-    return (ndcoor, nodes, coor, plane, elnodes, elas, pois, t, displ, cload, nloadinc, MasterDOF, SlaveDOF)
+    return (ndcoor, nodes, coor, plane, elnodes, elas, pois, t, displ, cload,
+         nloadinc, MasterDOF, SlaveDOF)
 
 
 def B_Quad8(xi, eta, X, NL_flag):
