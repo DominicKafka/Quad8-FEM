@@ -280,8 +280,8 @@ for iter_load in range(nloadinc):
             U[mdof, 0] = U[mdof, 0] + deltaUf[:(len(fdof))]
             [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
 
-        AllResNrm.append(ResNrm)  # ok<SAGROW>
-        AlldUNrm.append(dUNrm)  # ok<SAGROW>
+        AllResNrm.append(ResNrm)
+        AlldUNrm.append(dUNrm)
 
         if (itera == 1) and (iter_load == 0):
             check = checker.build('bigloop.mat')
@@ -301,7 +301,7 @@ for iter_load in range(nloadinc):
 
     print ('Load increment ', (iter_load + 1), ' converged after ', itera,
     ' iterations.')
-    All_iter.append(itera)  # ok<SAGROW>
+    All_iter.append(itera)
     for i in range(nnodes - 1):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
 
