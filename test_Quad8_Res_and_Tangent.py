@@ -23,7 +23,8 @@ class Quad8_Res_and_TangentTestCase(unittest.TestCase):
         np.testing.assert_almost_equal(El_res,
              El_resd, decimal=3, err_msg='Incorrect El_res', verbose=True)
         np.testing.assert_almost_equal(k_elem,
-             k_elemd, decimal=3, err_msg='Incorrect k_elem', verbose=True)
+             k_elemd, decimal=5, err_msg='Incorrect k_elem', verbose=True)
+        print k_elem
         np.testing.assert_almost_equal(El_stress,
              El_stressd, decimal=3, err_msg='Incorrect El_stress', verbose=True)
         np.testing.assert_almost_equal(El_strain,

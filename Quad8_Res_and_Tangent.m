@@ -8,7 +8,8 @@ strain    = zeros(12,1);         % Initialize strain vector with zeros
 for jGauss = 1:2                 % 2 by 2 Gauss integration loops
     eta = (-1)^jGauss*Gauss_pos; % Natural coordinate eta
     for iGauss = 1:2
-        xi = (-1)^iGauss*Gauss_pos;             % Natural coordinate xi
+        xi = (-1)^iGauss*Gauss_pos;      
+		% Natural coordinate xi
         [B,detJ] = B_Quad8(xi,eta,X,true);      % B for Eq.(4.83)
         Fvec = Ivec + B*U;                      % Eq.(4.88)
         %detF = Fvec(1)*Fvec(2)-Fvec(3)*Fvec(4); % Determinant of F
