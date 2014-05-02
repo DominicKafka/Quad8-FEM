@@ -225,17 +225,29 @@ def calc_von_mises(StressNode, pois, plane):
     return VonMises
 
 
-def calc_tresca(StressNode=None, pois=None, plane=None):
+def calc_tresca(StressNode, pois, plane):
+    import numpy as np
 
-    nelem = size(StressNode, 1)
+    nelem = len(StressNode)
 
-    Tresca = zeros(nelem, 4)
+    Tresca = np.matrix(np.zeros([nelem, 4]))
 
     if plane == 1:
-        for j in mslice[1:nelem]:
-            for i in mslice[1:4]:
+        for j in range(nelem):
+            for i in range(4):
 
+                s = ([[StressNode[j, 1 + i * 3], StressNode[j, 3 + i * 3], 0],
+                    [StressNode[j, 3 + i * 3], StressNode[j, 2 + i * 3], 0],
+                    [0, 0, 0]])
+                principal = np.linalg.eig(s)
+                Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
+    else:
+        for j in range(nelem):
+            for i in range(4):
+                s = ([[StressNode[j, 1 + i * 3], StressNode[j, 3 + i * 3], 0],
+                     [StressNode[j, 3 + i * 3], StressNode[j, 2 + i * 3], 0],
+        [0, 0, pois * (StressNode[j, 1 + i * 3] + StressNode[j, 2 + i * 3])]])
+                principal = np.linalg.eig(s)
+                Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
 
-                s = mcat([StressNode(j, 2 + (i - 1) * 3), StressNode(j, 4 + (i - 1) * 3), 0, OMPCSEMI, StressNode(j, 4 + (i - 1) * 3), StressNode(j, 3 + (i - 1) * 3), 0, OMPCSEMI, 0, 0, 0])
-                principal = eig(s)
-                Tresca(j, i).lvalue = max(principal) - min(principal)
+    return Tresca

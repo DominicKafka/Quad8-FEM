@@ -11,6 +11,7 @@ from solver_utils import read_input_file
 from solver_utils import Quad8_Res_and_Tangent
 from solver_utils import nodal_stresses
 from solver_utils import calc_von_mises
+from solver_utils import calc_tresca
 from block_diag import block_diag
 
 import time
@@ -317,7 +318,9 @@ check('StressNode', StressNode)
 
 VonMises = calc_von_mises(StressNode, pois, plane)
 check('VonMises', VonMises)
-#Tresca = calc_tresca(StressNode, pois, plane)
+
+Tresca = calc_tresca(StressNode, pois, plane)
+check('Tresca', Tresca)
 
 #Write output to text based output file
 #write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain, StressOut)
