@@ -86,7 +86,7 @@ def B_Quad8(xi, eta, X, NL_flag):
     D = np.asmatrix(np.zeros([4, 16]))  # Initialize D with zeros
     # Derivatives of shape functions wrt xi & eta
 
-    dNdxi = 1/4.*np.matrix([[eta + 2. * xi * (1 - eta) - eta ** 2,
+    dNdxi = 1/4.*np.array([[eta + 2. * xi * (1 - eta) - eta ** 2,
                              -eta + 2. * xi * (1 - eta) + eta ** 2,
                              eta + eta ** 2 + 2. * xi * (1 + eta),
                              -eta + 2. * xi * (1 + eta) - eta ** 2,
@@ -103,11 +103,12 @@ def B_Quad8(xi, eta, X, NL_flag):
                              2. - 2. * xi ** 2,
                              -4 * (1 - xi) * eta]])
 
-    for i in range(2):
-        for j in range(8):
-            D[i, 2 * j] = dNdxi[i, j]
-            D[i + 2, 2 * j + 1] = dNdxi[i, j]
-              # Arrange shape function derivatives into D
+    # Arrange shape function derivatives into D
+    i = np.arange(2)
+    j = np.arange(8)
+    D[np.ix_(i, 2 * j)] = dNdxi
+    D[np.ix_(i + 2, 2 * j + 1)] = dNdxi
+
     J = dNdxi * np.matrix(X)  # Eq.(2.40)
     detJ = np.linalg.det(J)  # Determinant of Jacobian J
     invJ = np.linalg.inv(J)  # Inverse of Jacobian
