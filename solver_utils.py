@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
+import numpy as np
 
 def readsectionfile(filename):
     """ Read a file containing string section names and rows of numbers
@@ -81,7 +82,7 @@ def read_input_file(filename):
 
 
 def B_Quad8(xi, eta, X, NL_flag):
-    import numpy as np
+
     D = np.matrix(np.zeros([4, 16]))  # Initialize D with zeros
     # Derivatives of shape functions wrt xi & eta
 
@@ -125,7 +126,7 @@ def B_Quad8(xi, eta, X, NL_flag):
 
 
 def Fvec_to_Fmat(Fvec):
-    import numpy as np
+
     Fmat = np.matrix([[Fvec[0], 0, 0.5 * Fvec[2], 0.5 * Fvec[2]],
                       [0, Fvec[1], 0.5 * Fvec[3], 0.5 * Fvec[3]],
                       [0, Fvec[2], 0.5 * Fvec[0], 0.5 * Fvec[0]],
@@ -134,7 +135,7 @@ def Fvec_to_Fmat(Fvec):
 
 
 def Svec_to_Smat(Svec=None):
-    import numpy as np
+
     Smat = np.matrix([[Svec[0], 0, Svec[2], 0],
                       [0, Svec[1], 0, Svec[2]],
                       [Svec[2], 0, Svec[1], 0],
@@ -143,7 +144,7 @@ def Svec_to_Smat(Svec=None):
 
 
 def Quad8_Res_and_Tangent(X, U, Cmat, t):
-    import numpy as np
+
     Tangent = np.matrix(np.zeros([16, 16]))  # Initialize tangent with zeros
     Res = np.matrix(np.zeros([16, 1]))  # Initialize residual with zeros
     Gauss_pos = 1. / (3) ** (0.5)  # Gauss point location
@@ -181,8 +182,6 @@ def Quad8_Res_and_Tangent(X, U, Cmat, t):
 
 
 def nodal_stresses(elnodes, stress):
-    import numpy as np
-
     StressOut = np.c_[elnodes[:, 0],
          stress[:, [0, 1, 2, 3, 4, 5, 9, 10, 11, 6, 7, 8]]]
 
@@ -208,8 +207,6 @@ def nodal_stresses(elnodes, stress):
 
 
 def calc_von_mises(StressNode, pois, plane):
-    import numpy as np
-
     VonMises = np.array(np.zeros([len(StressNode), 4]))
     StressNode = np.array(StressNode)
     if (plane == 1):
@@ -232,8 +229,6 @@ def calc_von_mises(StressNode, pois, plane):
 
 
 def calc_tresca(StressNode, pois, plane):
-    import numpy as np
-
     nelem = len(StressNode)
 
     Tresca = np.matrix(np.zeros([nelem, 4]))
@@ -259,12 +254,15 @@ def calc_tresca(StressNode, pois, plane):
 
 
 def write_section(fid, title, data, headings, formats):
+    """ Write a section of output file using the title supplied and matching centered 
+        headings and formats """
     def writeline(string):
         fid.write(string + ' \n')
+
     # Figure out the total width assuming formats look like %0.0f or %0f
     widths = [int(f[1:-1].split('.')[0]) for f in formats]
     totalwidth = sum(widths) + len(formats) - 1
-    
+
     writeline(title.center(min(totalwidth, 42)))
     stars = '*' * totalwidth
     writeline(stars)
@@ -277,7 +275,6 @@ def write_section(fid, title, data, headings, formats):
 
 def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     StressOut):
-    import numpy as np
 
     Uoutput = np.c_[nodes, U[::2], U[1::2]]
     Uoutput = np.array(Uoutput)
@@ -292,7 +289,7 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     SupReac = np.array(SupReac)
 
     fid = open(file_out, 'w')
-    
+
     fid.write('OUTPUT OF PYTHON Q4 SMALL STRAIN FEM IMPLEMENTATION \n')
     fid.write('\n')
     write_section(fid, 'DISPLACEMENTS', Uoutput,
