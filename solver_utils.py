@@ -256,7 +256,6 @@ def calc_tresca(StressNode, pois, plane):
                 Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
 
     return Tresca
-#<<<<<<< HEAD  says invalid syntax
 
 
 def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
@@ -315,5 +314,3 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     toc = time.time()
     finish = toc - tic
     print 'Done writing output                 : ', finish, ' seconds.'
-#=======
-#>>>>>>> ff14ad837c0811adfd96e037a2c69f3be043a1ec
