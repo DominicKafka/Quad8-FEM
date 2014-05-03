@@ -160,12 +160,10 @@ def Quad8_Res_and_Tangent(X, U, Cmat, t):
             B.T * (Smat + Fmat * Cmat * Fmat.T) * B * float(detJ) * float(t))
             # Eq.(4.106)
             detF = Fvec[0] * Fvec[1] - Fvec[2] * Fvec[3]
-            FTF = np.matrix([
-            [float(Fvec[0]) ** 2, Fvec[2] ** 2, Fvec[0] * Fvec[2],
-            Fvec[2] * Fvec[0]],
-            [Fvec[3] ** 2, Fvec[1] ** 2, Fvec[3] * Fvec[1], Fvec[3] * Fvec[1]],
-            [Fvec[0] * Fvec[3], Fvec[2] * Fvec[1], Fvec[0] * Fvec[1],
-            Fvec[2] * Fvec[3]]])
+            F = Fvec  # PEP8 note: This is more legible than the longer lines
+            FTF = np.matrix([[float(F[0])**2, F[2]**2, F[0]*F[2], F[2]*F[0]],
+                             [F[3]**2, F[1]**2, F[3]*F[1], F[3]*F[1]],
+                             [F[0]*F[3], F[2]*F[1], F[0]*F[1], F[2]*F[3]]])
             Cauchy = FTF * Svec / detF
             GP = 2 * (jGauss) + iGauss + 1
             for i in range(3):
