@@ -308,7 +308,7 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     fid.write('***************************** \n')
     for i in range(len(SupReac)):
         fid.write('%5d %5d %17.5e \n'% tuple(SupReac[i]))
-    fid.close
+    fid.close()
 
 
     toc = time.time()
