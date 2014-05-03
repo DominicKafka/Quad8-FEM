@@ -264,17 +264,19 @@ def write_section(fid, title, data, headings, formats):
     # Figure out the total width assuming formats look like %0.0f or %0f
     widths = [int(f[1:-1].split('.')[0]) for f in formats]
     totalwidth = sum(widths) + len(formats) - 1
+    
     writeline(title.center(min(totalwidth, 42)))
     stars = '*' * totalwidth
     writeline(stars)
-    writeline(''.join(h.center(w) for h, w in zip(headings, widths)))
+    writeline(''.join(h.center(w + 1) for h, w in zip(headings, widths)))
     writeline(stars)
     for row in data:
         writeline(' '.join(formats) % tuple(row))
+    writeline('')
 
 
 def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
-    StressOut, tic):
+    StressOut):
     import numpy as np
     import time
 
@@ -296,7 +298,7 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     fid.write('\n')
     write_section(fid, 'DISPLACEMENTS', Uoutput,
                   ['Node', 'U1', 'U2'],
-                  ['%5d', '%13.5f', '%13.5f'])
+                  ['%5d', '%13.5e', '%13.5e'])
 
     write_section(fid, 'ELEMENT STRESSES', StressOut,
                   ['Element', 'S11_G1', 'S22_G1', 'S12_G1', 'S11_G2', 'S22_G2', 'S12_G2', 'S11_G3', 'S22_G3', 'S12_G3', 'S11_G4', 'S22_G4', 'S12_G4'],
@@ -310,8 +312,4 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
                   ['Node', 'DOF', 'Magnitude'],
                   ['%5d', '%5d', '%17.5e'])
     fid.close()
-
-
-    toc = time.time()
-    finish = toc - tic
-    print 'Done writing output                 : ', finish, ' seconds.'
+    

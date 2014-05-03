@@ -325,8 +325,12 @@ Tresca = calc_tresca(StressNode, pois, plane)
 check('Tresca', Tresca)
 
 #Write output to text based output file
-write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain,
-    StressOut, tic)
+write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain, StressOut)
+
+toc = time.time()
+finish = toc - tic
+print 'Done writing output                 : ', finish, ' seconds.'
+
 
 #If GraphOpt=1, start Graphical Output
 #if GraphOpt:
