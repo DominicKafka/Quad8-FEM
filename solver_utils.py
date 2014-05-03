@@ -83,7 +83,7 @@ def read_input_file(filename):
 
 def B_Quad8(xi, eta, X, NL_flag):
 
-    D = np.matrix(np.zeros([4, 16]))  # Initialize D with zeros
+    D = np.asmatrix(np.zeros([4, 16]))  # Initialize D with zeros
     # Derivatives of shape functions wrt xi & eta
 
     dNdxi = 1/4.*np.matrix([[eta + 2. * xi * (1 - eta) - eta ** 2,
@@ -145,14 +145,15 @@ def Svec_to_Smat(Svec=None):
 
 def Quad8_Res_and_Tangent(X, U, Cmat, t):
 
-    Tangent = np.matrix(np.zeros([16, 16]))  # Initialize tangent with zeros
-    Res = np.matrix(np.zeros([16, 1]))  # Initialize residual with zeros
+    Tangent = np.asmatrix(np.zeros([16, 16]))  # Initialize tangent with zeros
+    Res = np.asmatrix(np.zeros([16, 1]))  # Initialize residual with zeros
     Gauss_pos = 1. / (3) ** (0.5)  # Gauss point location
     Ivec = np.array([[1], [1], [0], [0]])  # Identity vector Eq.(4.89)
     Stress = np.zeros([12, 1])  # Initialize stress vector with zeros
     Strain = np.zeros([12, 1])  # Initialize strain vector with zeros
-    Cmat = np.matrix(Cmat)
-
+    Cmat = np.asmatrix(Cmat)
+    i = np.arange(3)
+    FTF = np.empty((3, 4))
     for jGauss in range(2):    # 2 by 2 Gauss integration loops
         eta = (-1) ** (jGauss + 1) * Gauss_pos  # Natural coordinate eta
         for iGauss in range(2):
@@ -169,15 +170,15 @@ def Quad8_Res_and_Tangent(X, U, Cmat, t):
             # Eq.(4.106)
             detF = Fvec[0] * Fvec[1] - Fvec[2] * Fvec[3]
             F = Fvec  # PEP8 note: This is more legible than the longer lines
-            FTF = np.matrix([[float(F[0])**2, F[2]**2, F[0]*F[2], F[2]*F[0]],
-                             [F[3]**2, F[1]**2, F[3]*F[1], F[3]*F[1]],
-                             [F[0]*F[3], F[2]*F[1], F[0]*F[1], F[2]*F[3]]])
+            # Note: Updating FTF in-place like this saves time
+            FTF[:] = [[float(F[0])**2, F[2]**2, F[0]*F[2], F[2]*F[0]],
+                      [F[3]**2, F[1]**2, F[3]*F[1], F[3]*F[1]],
+                      [F[0]*F[3], F[2]*F[1], F[0]*F[1], F[2]*F[3]]]
             Cauchy = FTF * Svec / detF
             GP = 2 * (jGauss) + iGauss + 1
-            for i in range(3):
-                f = 3 * (GP - 1) + i
-                Stress[f, 0] = Cauchy[i]
-                Strain[f, 0] = Evec[i]
+            f = 3 * (GP - 1) + i
+            Stress[f, :] = Cauchy[i, 0]
+            Strain[f, :] = Evec[i, 0]
     return Res, Tangent, Stress, Strain
 
 
