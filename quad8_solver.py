@@ -9,7 +9,11 @@ import numpy as np
 from scipy.sparse import coo_matrix
 from solver_utils import read_input_file
 from solver_utils import Quad8_Res_and_Tangent
+from solver_utils import nodal_stresses
+from solver_utils import calc_von_mises
+from solver_utils import calc_tresca
 from block_diag import block_diag
+
 import time
 
 import logging
@@ -305,12 +309,18 @@ for iter_load in range(nloadinc):
     for i in range(nnodes - 1):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
 
-
+check = checker.build('Beam2by20.mat')
 
 #Compute nodal loads, Von Mises and Tresca
-#[StressOut, StressNode] = nodal_stresses(elnodes, stress)
-#VonMises = calc_von_mises(StressNode, pois, plane)
-#Tresca = calc_tresca(StressNode, pois, plane)
+[StressOut, StressNode] = nodal_stresses(elnodes, stress)
+check('StressOut', StressOut)
+check('StressNode', StressNode)
+
+VonMises = calc_von_mises(StressNode, pois, plane)
+check('VonMises', VonMises)
+
+Tresca = calc_tresca(StressNode, pois, plane)
+check('Tresca', Tresca)
 
 #Write output to text based output file
 #write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain, StressOut)

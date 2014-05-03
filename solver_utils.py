@@ -65,7 +65,7 @@ def read_input_file(filename):
 
     MasterDOF = []
     SlaveDOF = []
-    
+
     # Check for consistency
     assert nnodes == len(ndcoor)
     assert nelem == len(elnodes)
@@ -76,7 +76,8 @@ def read_input_file(filename):
     time = toc - tic
     (logging.info
     ('Done reading input file {} in {} seconds'.format(filename, time)))
-    return (ndcoor, nodes, coor, plane, elnodes, elas, pois, t, displ, cload, nloadinc, MasterDOF, SlaveDOF)
+    return (ndcoor, nodes, coor, plane, elnodes, elas, pois, t, displ, cload,
+         nloadinc, MasterDOF, SlaveDOF)
 
 
 def B_Quad8(xi, eta, X, NL_flag):
@@ -171,3 +172,80 @@ def Quad8_Res_and_Tangent(X, U, Cmat, t):
                 Stress[f, 0] = Cauchy[i]
                 Strain[f, 0] = Evec[i]
     return Res, Tangent, Stress, Strain
+
+
+def nodal_stresses(elnodes, stress):
+    import numpy as np
+
+    StressOut = np.c_[elnodes[:, 0],
+         stress[:, [0, 1, 2, 3, 4, 5, 9, 10, 11, 6, 7, 8]]]
+
+    factors = np.matrix([(1 + np.sqrt(3) / 2.), -0.5, -0.5,
+         (1 - np.sqrt(3) / 2.)]).T
+
+    cols = np.matrix([[2, 5, 11, 8], [5, 2, 8, 11], [8, 5, 11, 2],
+         [11, 2, 8, 5]])
+
+    StressNode = np.matrix(np.zeros(np.shape(StressOut)))
+    elnodes = np.matrix(elnodes)
+    StressNode[:, 0] = elnodes[:, 0]
+
+    for i in range(3):
+        for row in cols:
+            row = (row + i - 1)
+            StressNode[:, row[0, 0]] = (StressOut[:,
+                     [row[0, 0], row[0, 1], row[0, 2], row[0, 3]]] * factors)
+
+    return StressOut, StressNode
+
+
+def calc_von_mises(StressNode, pois, plane):
+
+    import numpy as np
+    VonMises = np.array(np.zeros([len(StressNode), 4]))
+    StressNode = np.array(StressNode)
+    if (plane == 1):
+        for i in range(4):
+            VonMises[:, i] = (StressNode[:, 1 + i * 3] ** 2 -
+            StressNode[:, 1 + i * 3] * StressNode[:, 2 + i * 3] +
+            StressNode[:, 2 + i * 3] ** 2 +
+            3 * StressNode[:, 3 + i * 3] ** 2)
+            VonMises[:, i] = VonMises[:, i] ** 0.5
+
+    else:
+        for i in range(4):
+            VonMises[:, i] = ((1 - pois + pois ** 2) *
+            (StressNode[:, 1 + i * 3] ** 2 + StressNode[:, 2 + i * 3] ** 2)
+             - (1 + pois - pois ** 2) * StressNode[:, 1 + i * 3] *
+             StressNode[:, 2 + i * 3] + 3 * StressNode[:, 3 + i * 3] ** 2)
+            VonMises[:, i] = VonMises[:, i] ** 0.5
+
+    return VonMises
+
+
+def calc_tresca(StressNode, pois, plane):
+    import numpy as np
+
+    nelem = len(StressNode)
+
+    Tresca = np.matrix(np.zeros([nelem, 4]))
+
+    if plane == 1:
+        for j in range(nelem):
+            for i in range(4):
+
+                s = ([[StressNode[j, 1 + i * 3], StressNode[j, 3 + i * 3], 0],
+                    [StressNode[j, 3 + i * 3], StressNode[j, 2 + i * 3], 0],
+                    [0, 0, 0]])
+                principal = np.linalg.eig(s)
+                Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
+    else:
+        for j in range(nelem):
+            for i in range(4):
+                s = ([[StressNode[j, 1 + i * 3], StressNode[j, 3 + i * 3], 0],
+                     [StressNode[j, 3 + i * 3], StressNode[j, 2 + i * 3], 0],
+        [0, 0, pois * (StressNode[j, 1 + i * 3] + StressNode[j, 2 + i * 3])]])
+                principal = np.linalg.eig(s)
+                Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
+
+    return Tresca
