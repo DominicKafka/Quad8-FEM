@@ -251,3 +251,61 @@ def calc_tresca(StressNode, pois, plane):
                 Tresca[j, i] = np.max(principal[0]) - np.min(principal[0])
 
     return Tresca
+
+
+def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
+    StressOut, tic):
+    import numpy as np
+    import time
+
+    Uoutput = np.c_[nodes, U[::2], U[1::2]]
+    Uoutput = np.array(Uoutput)
+    StressOut = np.array(StressOut)
+
+    StrainOut = np.c_[elnodes[:, 0],
+        strain[:, [0, 1, 2, 3, 4, 5, 9, 10, 11, 6, 7, 8]]]
+    StrainOut = np.array(StrainOut)
+
+    displ = np.array(displ)
+    SupReac = np.c_[displ[:, [0, 1]], Pb]
+    SupReac = np.array(SupReac)
+
+    fid = open(file_out, 'w')
+    fid.write('OUTPUT OF PYTHON Q4 SMALL STRAIN FEM IMPLEMENTATION \n')
+    fid.write('\n')
+    fid.write('          DISPLACEMENTS \n')
+    fid.write('********************************* \n')
+    fid.write('  Node      U1           U2 \n')
+    fid.write('********************************* \n')
+    for i in range(len(Uoutput)):
+        fid.write('%5f %13.5f %13.5f \n' % tuple(Uoutput[i]))
+
+    fid.write('\n')
+    fid.write('                ELEMENT STRESSES \n')
+    fid.write('***************************************************************************************************************************************************************** \n')
+    fid.write('Element   S11_G1       S22_G1       S12_G1       S11_G2       S22_G2       S12_G2       S11_G3       S22_G3         S12_G3     S11_G4       S22_G4       S12_G4 \n')
+    fid.write('***************************************************************************************************************************************************************** \n')
+    for i in range(len(StressOut)):
+        fid.write('%5d %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e \n'% tuple(StressOut[i]))
+
+    fid.write('\n')
+    fid.write('                ELEMENT STRAINS \n')
+    fid.write('***************************************************************************************************************************************************************** \n')
+    fid.write('Element   E11_G1       E22_G1       E12_G1       E11_G2       E22_G2       E12_G2       E11_G3       E22_G3       E12_G3       E11_G4       E22_G4       E12_G4 \n')
+    fid.write('***************************************************************************************************************************************************************** \n')
+    for i in range(len(StrainOut)):
+        fid.write('%5d %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e \n'% tuple(StrainOut[i]))
+
+    fid.write('\n')
+    fid.write('       SUPPORT REACTIONS \n')
+    fid.write('***************************** \n')
+    fid.write('  Node   Dof      Magnitude \n')
+    fid.write('***************************** \n')
+    for i in range(len(SupReac)):
+        fid.write('%5d %5d %17.5e \n'% tuple(SupReac[i]))
+    fid.close
+
+
+    toc = time.time()
+    finish = toc - tic
+    print 'Done writing output                 : ', finish, ' seconds.'

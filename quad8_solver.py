@@ -12,6 +12,7 @@ from solver_utils import Quad8_Res_and_Tangent
 from solver_utils import nodal_stresses
 from solver_utils import calc_von_mises
 from solver_utils import calc_tresca
+from solver_utils import write_output_file
 from block_diag import block_diag
 
 import time
@@ -309,6 +310,7 @@ for iter_load in range(nloadinc):
     for i in range(nnodes - 1):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
 
+tic = time.time()
 check = checker.build('Beam2by20.mat')
 
 #Compute nodal loads, Von Mises and Tresca
@@ -323,7 +325,8 @@ Tresca = calc_tresca(StressNode, pois, plane)
 check('Tresca', Tresca)
 
 #Write output to text based output file
-#write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain, StressOut)
+write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain,
+    StressOut, tic)
 
 #If GraphOpt=1, start Graphical Output
 #if GraphOpt:
