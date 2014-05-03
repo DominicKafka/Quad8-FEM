@@ -258,6 +258,21 @@ def calc_tresca(StressNode, pois, plane):
     return Tresca
 
 
+def write_section(fid, title, data, headings, formats):
+    def writeline(string):
+        fid.write(string + ' \n')
+    # Figure out the total width assuming formats look like %0.0f or %0f
+    widths = [int(f[1:-1].split('.')[0]) for f in formats]
+    totalwidth = sum(widths) + len(formats) - 1
+    writeline(title.center(min(totalwidth, 42)))
+    stars = '*' * totalwidth
+    writeline(stars)
+    writeline(''.join(h.center(w) for h, w in zip(headings, widths)))
+    writeline(stars)
+    for row in data:
+        writeline(' '.join(formats) % tuple(row))
+
+
 def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     StressOut, tic):
     import numpy as np
@@ -276,38 +291,24 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     SupReac = np.array(SupReac)
 
     fid = open(file_out, 'w')
+    
     fid.write('OUTPUT OF PYTHON Q4 SMALL STRAIN FEM IMPLEMENTATION \n')
     fid.write('\n')
-    fid.write('          DISPLACEMENTS \n')
-    fid.write('********************************* \n')
-    fid.write('  Node      U1           U2 \n')
-    fid.write('********************************* \n')
-    for i in range(len(Uoutput)):
-        fid.write('%5f %13.5f %13.5f \n' % tuple(Uoutput[i]))
+    write_section(fid, 'DISPLACEMENTS', Uoutput,
+                  ['Node', 'U1', 'U2'],
+                  ['%5d', '%13.5f', '%13.5f'])
 
-    fid.write('\n')
-    fid.write('                ELEMENT STRESSES \n')
-    fid.write('***************************************************************************************************************************************************************** \n')
-    fid.write('Element   S11_G1       S22_G1       S12_G1       S11_G2       S22_G2       S12_G2       S11_G3       S22_G3         S12_G3     S11_G4       S22_G4       S12_G4 \n')
-    fid.write('***************************************************************************************************************************************************************** \n')
-    for i in range(len(StressOut)):
-        fid.write('%5d %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e \n'% tuple(StressOut[i]))
+    write_section(fid, 'ELEMENT STRESSES', StressOut,
+                  ['Element', 'S11_G1', 'S22_G1', 'S12_G1', 'S11_G2', 'S22_G2', 'S12_G2', 'S11_G3', 'S22_G3', 'S12_G3', 'S11_G4', 'S22_G4', 'S12_G4'],
+                  ['%5d'] + ['%12.4e']*12)
 
-    fid.write('\n')
-    fid.write('                ELEMENT STRAINS \n')
-    fid.write('***************************************************************************************************************************************************************** \n')
-    fid.write('Element   E11_G1       E22_G1       E12_G1       E11_G2       E22_G2       E12_G2       E11_G3       E22_G3       E12_G3       E11_G4       E22_G4       E12_G4 \n')
-    fid.write('***************************************************************************************************************************************************************** \n')
-    for i in range(len(StrainOut)):
-        fid.write('%5d %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e %12.4e \n'% tuple(StrainOut[i]))
+    write_section(fid, 'ELEMENT STRAINS', StrainOut,
+                  ['Element', 'E11_G1', 'E22_G1', 'E12_G1', 'E11_G2', 'E22_G2', 'E12_G2', 'E11_G3', 'E22_G3', 'E12_G3', 'E11_G4', 'E22_G4', 'E12_G4'],
+                  ['%5d'] + ['%12.4e']*12)
 
-    fid.write('\n')
-    fid.write('       SUPPORT REACTIONS \n')
-    fid.write('***************************** \n')
-    fid.write('  Node   Dof      Magnitude \n')
-    fid.write('***************************** \n')
-    for i in range(len(SupReac)):
-        fid.write('%5d %5d %17.5e \n'% tuple(SupReac[i]))
+    write_section(fid, 'SUPPORT REACTIONS', SupReac,
+                  ['Node', 'DOF', 'Magnitude'],
+                  ['%5d', '%5d', '%17.5e'])
     fid.close()
 
 
