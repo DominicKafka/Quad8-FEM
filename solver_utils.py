@@ -278,7 +278,6 @@ def write_section(fid, title, data, headings, formats):
 def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
     StressOut):
     import numpy as np
-    import time
 
     Uoutput = np.c_[nodes, U[::2], U[1::2]]
     Uoutput = np.array(Uoutput)
@@ -301,15 +300,20 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
                   ['%5d', '%13.5e', '%13.5e'])
 
     write_section(fid, 'ELEMENT STRESSES', StressOut,
-                  ['Element', 'S11_G1', 'S22_G1', 'S12_G1', 'S11_G2', 'S22_G2', 'S12_G2', 'S11_G3', 'S22_G3', 'S12_G3', 'S11_G4', 'S22_G4', 'S12_G4'],
+                  ['Element', 'S11_G1', 'S22_G1', 'S12_G1',
+                              'S11_G2', 'S22_G2', 'S12_G2',
+                              'S11_G3', 'S22_G3', 'S12_G3',
+                              'S11_G4', 'S22_G4', 'S12_G4'],
                   ['%5d'] + ['%12.4e']*12)
 
     write_section(fid, 'ELEMENT STRAINS', StrainOut,
-                  ['Element', 'E11_G1', 'E22_G1', 'E12_G1', 'E11_G2', 'E22_G2', 'E12_G2', 'E11_G3', 'E22_G3', 'E12_G3', 'E11_G4', 'E22_G4', 'E12_G4'],
+                  ['Element', 'E11_G1', 'E22_G1', 'E12_G1',
+                              'E11_G2', 'E22_G2', 'E12_G2',
+                              'E11_G3', 'E22_G3', 'E12_G3',
+                              'E11_G4', 'E22_G4', 'E12_G4'],
                   ['%5d'] + ['%12.4e']*12)
 
     write_section(fid, 'SUPPORT REACTIONS', SupReac,
                   ['Node', 'DOF', 'Magnitude'],
                   ['%5d', '%5d', '%17.5e'])
     fid.close()
-    
