@@ -268,7 +268,7 @@ def write_section(fid, title, data, headings, formats):
     writeline(title.center(min(totalwidth, 42)))
     stars = '*' * totalwidth
     writeline(stars)
-    writeline(''.join(h.center(w + 1) for h, w in zip(headings, widths)))
+    writeline(' '.join(h.center(w) for h, w in zip(headings, widths)))
     writeline(stars)
     for row in data:
         writeline(' '.join(formats) % tuple(row))
