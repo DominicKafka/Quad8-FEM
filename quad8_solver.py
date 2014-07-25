@@ -13,6 +13,7 @@ from solver_utils import nodal_stresses
 from solver_utils import calc_von_mises
 from solver_utils import calc_tresca
 from solver_utils import write_output_file
+from solver_utils import graphs
 from block_diag import block_diag
 
 import time
@@ -20,7 +21,7 @@ import time
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-import checker
+#import checker
 
 #ElType = '5B';
 #ElType = '7B';
@@ -42,7 +43,7 @@ print 'Welcome to the Quad-8 Finite Element Program'
 #print filename
 case = 'Beam2by20'
 
-check = checker.build(case + '.mat')
+#check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
 
 filename = case + '.inp'
@@ -57,7 +58,7 @@ ncload = len(cload)
 file_out = filename + '.out'
 sdof = np.array(sdof)
 mdof = np.array(mdof)
-check('elnodes', elnodes)
+#check('elnodes', elnodes)
 
 #Get maximum dimensions of model
 dx_max = max(coor[:, 0]) - min(coor[:, 0])
@@ -66,7 +67,7 @@ dL_max = math.sqrt(dx_max ** 2 + dy_max ** 2)
 
 #GraphOpt=1: graphical display of results and text based output files
 #GraphOpt=0: only text based output files
-GraphOpt = 0
+GraphOpt = 1
 
 # Find prescribed (pdof) and free (fdof) degrees of freedom
 # FIXME: the next line assumes 2d
@@ -82,8 +83,8 @@ fdof = np.flatnonzero(dof != 0)
 fdof = np.setdiff1d(fdof, mdof)
 fdof = np.setdiff1d(fdof, sdof)
 
-check('fdof', fdof + 1)
-check('pdof', pdof + 1)
+#check('fdof', fdof + 1)
+#check('pdof', pdof + 1)
 
 # Initially guess that all free displacements are zero
 U = np.zeros([2 * nnodes, 1])
@@ -100,7 +101,7 @@ else:
 c = e / float(1 - nu ** 2)
 matC = (np.asmatrix(
     block_diag([[c, c * nu], [c * nu, c]], np.eye(2) * c * (1 - nu))))
-check('matC', matC)
+#check('matC', matC)
 
 ndnum = range(1, (1 + NodesPerEl))
 [colpos, rowpos] = np.meshgrid(range(DofPerEl), range(DofPerEl))
@@ -114,7 +115,7 @@ dUNrm = 1.0
 
 F = np.zeros([2 * nnodes, 1])
 LoadFac = (np.array(range(1, nloadinc + 1))) / float(nloadinc)
-check('LoadFac', LoadFac)
+#check('LoadFac', LoadFac)
 
 # FIXME: this 12 should be a variable
 stress = np.matrix(np.zeros([nelem, 12]))
@@ -193,22 +194,22 @@ for iter_load in range(nloadinc):
             k_elem = np.matrix(k_elem.flatten()).T
             stiff_vec[k, 0] = k_elem[0:TotKvec, 0]
 
-            if (i == 4) and (itera == 1) and (iter_load == 0):
-                check = checker.build('nelemloop.mat')
-                check('shape_row_vec', np.shape(row_vec))
-                check('shape_col_vec', np.shape(col_vec))
-                check('shape_stiff_vec', np.shape(stiff_vec))
-                #check('row_vec', row_vec)  # gives 'memory error'
-                #check('col_vec', col_vec)  # gives 'memory error'
-                #check('k_elem', k_elem)  # gives 'memory error'
-                #check('stiff_vec', stiff_vec) # gives 'memory error'
-                #check('some_stiff_vec', some_stiff_vec.T)
+            #if (i == 4) and (itera == 1) and (iter_load == 0):
+                #check = checker.build('nelemloop.mat')
+                #check('shape_row_vec', np.shape(row_vec))
+                #check('shape_col_vec', np.shape(col_vec))
+                #check('shape_stiff_vec', np.shape(stiff_vec))
+                ##check('row_vec', row_vec)  # gives 'memory error'
+                ##check('col_vec', col_vec)  # gives 'memory error'
+                ##check('k_elem', k_elem)  # gives 'memory error'
+                ##check('stiff_vec', stiff_vec) # gives 'memory error'
+                ##check('some_stiff_vec', some_stiff_vec.T)
                 #gives error though identical
-                check('U_el', U_el)
-                check('XY', XY)
-                check('stress', stress)
-                check('strain', strain)
-                check('Residual', Residual)
+                #check('U_el', U_el)
+                #check('XY', XY)
+                #check('stress', stress)
+                #check('strain', strain)
+                #check('Residual', Residual)
             # End of main loop over elements
 
         # Assemble k_global from vectors
@@ -228,9 +229,9 @@ for iter_load in range(nloadinc):
             ans = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
             F_ext[pos, 0] = ans[0, 0]
 
-            if (i == 4) and (itera == 1) and (iter_load == 0):
-                check = checker.build('ncloadloop.mat')
-                check('F_ext', F_ext.T)
+            #if (i == 4) and (itera == 1) and (iter_load == 0):
+                #check = checker.build('ncloadloop.mat')
+                #check('F_ext', F_ext.T)
 
         # Subtract internal nodal loads
         F = Residual - F_ext
@@ -288,17 +289,17 @@ for iter_load in range(nloadinc):
         AllResNrm.append(ResNrm)
         AlldUNrm.append(dUNrm)
 
-        if (itera == 1) and (iter_load == 0):
-            check = checker.build('bigloop.mat')
-            check('F', F.T)
-            check('ResNrm', ResNrm)
-            #check('k_global', k_global)  # KeyError: 'k_global'
-            check('Kaa', Kaa)
-            check('Pa', Pa.T)
-            check('Kff', Kff)
-            check('Pf', Pf.T)
-            check('deltaUf', deltaUf.T)
-            check('U', U.T)
+        #if (itera == 1) and (iter_load == 0):
+            #check = checker.build('bigloop.mat')
+            #check('F', F.T)
+            #check('ResNrm', ResNrm)
+            ##check('k_global', k_global)  # KeyError: 'k_global'
+            #check('Kaa', Kaa)
+            #check('Pa', Pa.T)
+            #check('Kff', Kff)
+            #check('Pf', Pf.T)
+            #check('deltaUf', deltaUf.T)
+            #check('U', U.T)
 
     # Get support reactions
 
@@ -311,18 +312,18 @@ for iter_load in range(nloadinc):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
 
 tic = time.time()
-check = checker.build('Beam2by20.mat')
+#check = checker.build('Beam2by20.mat')
 
 #Compute nodal loads, Von Mises and Tresca
 [StressOut, StressNode] = nodal_stresses(elnodes, stress)
-check('StressOut', StressOut)
-check('StressNode', StressNode)
+#check('StressOut', StressOut)
+#check('StressNode', StressNode)
 
 VonMises = calc_von_mises(StressNode, pois, plane)
-check('VonMises', VonMises)
+#check('VonMises', VonMises)
 
 Tresca = calc_tresca(StressNode, pois, plane)
-check('Tresca', Tresca)
+#check('Tresca', Tresca)
 
 #Write output to text based output file
 write_output_file(file_out, U, displ, Fp, nodes, elnodes, strain, StressOut)
@@ -333,6 +334,6 @@ print 'Done writing output                 : ', finish, ' seconds.'
 
 
 #If GraphOpt=1, start Graphical Output
-#if GraphOpt:
-#graphical_user_interface(nnodes, coor, nelem, elnodes,
-#     StressNode, U, VonMises, Tresca, nloadinc, All_soln)
+if GraphOpt:
+    graphs(nnodes, coor, nelem, elnodes,
+     StressNode, U, VonMises, Tresca, nloadinc, All_soln)

@@ -256,7 +256,7 @@ def calc_tresca(StressNode, pois, plane):
 
 
 def write_section(fid, title, data, headings, formats):
-    """ Write a section of output file using the title supplied and matching centered 
+    """ Write a section of output file using the title supplied and matching centered
         headings and formats """
     def writeline(string):
         fid.write(string + ' \n')
@@ -316,3 +316,31 @@ def write_output_file(file_out, U, displ, Pb, nodes, elnodes, strain,
                   ['Node', 'DOF', 'Magnitude'],
                   ['%5d', '%5d', '%17.5e'])
     fid.close()
+
+
+def graphs(nnodes, coor, nelem, elnodes, StressNode, U,
+    VonMises, Tresca, nloadinc, All_soln):
+    import numpy as np
+    import pylab as pl
+    inp = '9'
+    while inp.strip() != '0':
+        inp = raw_input("Please choose a graph to display:\n 1: Original Shape\n 2: Deformed Shape\n 3: Overlay\n 0: End\n")
+        if inp.strip() == '1':
+            pl.plot(coor[:, 0], coor[:, 1], 'b.')
+            pl.axis('equal')
+            pl.show()
+        elif inp.strip() == '2':
+            dpm = np.c_[U[0:2 * nnodes:2], U[1:2 * nnodes:2]]
+            magfac = 1.
+            dcoor = coor + magfac * dpm
+            pl.plot(dcoor[:, 0], dcoor[:, 1], 'r.')
+            pl.axis('equal')
+            pl.show()
+        elif inp.strip() == '3':
+            dpm = np.c_[U[0:2 * nnodes:2], U[1:2 * nnodes:2]]
+            magfac = 1.
+            dcoor = coor + magfac * dpm
+            pl.plot(coor[:, 0], coor[:, 1], 'b.',
+                    dcoor[:, 0], dcoor[:, 1], 'r.')
+            pl.axis('equal')
+            pl.show()
