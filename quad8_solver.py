@@ -39,9 +39,15 @@ TotKvec = DofPerEl ** 2
 
 print 'Welcome to the Quad-8 Finite Element Program'
 
+#supx1 = float(input('x-coordinate of first support? '))
+#supy1 = float(input('y-coordinate of first support? '))
+#supx2 = float(input('x-coordinate of second support? '))
+#supy2 = float(input('y-coordinate of second support? '))
+
+
 #filename = raw_input('Input filename (without extension) ? ')
 #print filename
-case = 'Beam2by20'
+case = 'Spring2by20'
 
 #check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
