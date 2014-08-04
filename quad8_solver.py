@@ -47,7 +47,7 @@ print 'Welcome to the Quad-8 Finite Element Program'
 
 #filename = raw_input('Input filename (without extension) ? ')
 #print filename
-case = 'Spring2by20'
+case = 'leaf2by20_30inc'
 
 #check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
@@ -88,6 +88,9 @@ fdof = np.flatnonzero(dof != 0)
 #TODO: check if fdof and pdof should actually be a set instead of an array
 fdof = np.setdiff1d(fdof, mdof)
 fdof = np.setdiff1d(fdof, sdof)
+
+#print dof
+#print Up
 
 #check('fdof', fdof + 1)
 #check('pdof', pdof + 1)
@@ -131,19 +134,25 @@ AllResNrm = []
 AlldUNrm = []
 All_iter = []
 All_soln = []
+iter_load = 0
+Force = []
+delta = []
 
-for iter_load in range(nloadinc):
+#Support coordinates
+ysupdisp = -0.0021599334817
+ysup = ysupdisp - 0.003  # half the thickness
+xsup = 0.0464038485317
+
+while iter_load < nloadinc:
     print '---------------------------------------------------------------'
     print '                      Load increment ' + str(iter_load + 1)
     print '---------------------------------------------------------------'
+
     # Correct fraction of prescribed displacement applied to pdof
-    U[pdof, :] = LoadFac[iter_load] * Up
-    # If MPCs are present, compute slave DOF values
-    if (sdof.size == True):
-        [U[sdof, 0], P_mpc, d2PdUm2_Rs] = MPC_user(U[mdof, 0], F[sdof])
-    else:
-        P_mpc = np.matrix([])
-        d2PdUm2_Rs = []
+    U[pdof, :] = Up
+
+    P_mpc = np.matrix([])
+    d2PdUm2_Rs = []
 
     ResNrm = 1.
 
@@ -285,6 +294,7 @@ for iter_load in range(nloadinc):
         print 'Normalized displacement update                 = ', dUNrm
         print '                    --------------------'
 
+        #Uold = U
         # Sort Uf and Ub into A
         temp = deltaUf[:len(fdof)]
         U[fdof, 0] = U[fdof, 0] + temp.T.tolist()[0]
@@ -308,14 +318,109 @@ for iter_load in range(nloadinc):
             #check('U', U.T)
 
     # Get support reactions
-
     Fp = F[pdof]
+    print Fp
+
 
     print ('Load increment ', (iter_load + 1), ' converged after ', itera,
     ' iterations.')
     All_iter.append(itera)
     for i in range(nnodes - 1):
         All_soln.append([[U[2 * i, 0]], [U[2 * i + 1, 0]]])
+
+# Contact section
+    xfound = 0
+    contnode = 0
+    contact = 0
+    gapsup = 0
+    gapnode = 0
+    jump1 = (5)  # here
+    jump2 = (3)  # here
+    node1 = 0
+    node2 = jump1
+    switch1 = 0
+    dcoor = coor + np.c_[U[0:2 * nnodes:2], U[1:2 * nnodes:2]]
+
+    Uptemp = []
+
+    #calculate jumps with m and n not 8,5 and 3
+    while (node2 <= nnodes - 1) and (xfound == 0):
+
+        gapsup = xsup - dcoor[node1, 0]
+        #print 'gapsup ' + str(gapsup)
+        gapnode = (dcoor[node2, 0] - dcoor[node1, 0])
+        #print 'gapnode ' + str(gapnode)
+        if gapsup <= 0.5 * gapnode:
+            xscheck = dcoor[node1, 0]
+            xfound = 1
+            clearance = dcoor[node1, 1] - ysup
+            contnode = node1
+            print 'align at node ' + str(node1)
+            print clearance
+        if gapsup <= gapnode:
+            xscheck = dcoor[node2, 0]
+            xfound = 1
+            clearance = dcoor[node2, 1] - ysup
+            contnode = node2
+            print 'aligned at node ' + str(node2)
+            print 'clearance ' + str(clearance)
+
+        if xfound == 1:
+            if  clearance < 0:
+                contact = 1
+                print 'contact'
+                iter_load = iter_load - 1
+            else:
+                print 'no contact'
+
+        #if dof[node1, 1] < 0:
+         #   if node1 == 0:
+          #      if Fp[]
+
+        if switch1 == 0:
+            node1 = node2
+            node2 = node1 + jump2
+            switch1 = 1
+        else:
+            node1 = node2
+            node2 = node1 + jump1
+            switch1 = 0
+        #print node1
+        #print node2
+    #print node
+
+    if contact == 1:
+        #change dofs
+        # Find prescribed (pdof) and free (fdof) degrees of freedom
+        dof[contnode, 0] = 0
+        dof[contnode, 1] = 0
+        print dof
+        for i in range(len(Up) + 2):
+            if i < 2:
+                Uptemp.append(Up[i, 0])
+            elif i == 2:
+                Uptemp.append(U[2 * contnode, 0])
+            elif i == 3:
+                Uptemp.append(ysupdisp)
+            else:
+                Uptemp.append(Up[i - 2, 0])
+        print ysupdisp
+        print U[2 * contnode + 1, 0]
+        Up = np.matrix(Uptemp).T
+        print Up
+        pdof = np.flatnonzero(dof == 0)
+        fdof = np.flatnonzero(dof != 0)
+        fdof = np.setdiff1d(fdof, mdof)
+        fdof = np.setdiff1d(fdof, sdof)
+        print pdof
+
+    #if liftoff == 1:
+        #change dofs
+
+    #Force.append()
+    #delta.append(U[len(U) - 2 * (2 * m + 1)])
+    iter_load = iter_load + 1
+
 
 tic = time.time()
 #check = checker.build('Beam2by20.mat')

@@ -6,14 +6,14 @@ def mesh_inputs():
     Mag = 0
     RadD = 0
 
-    h = float(input('Height of rectangle ? '))
-    l = float(input('Length of rectangle ? '))
-    m = int(input('Increments along height ? '))
-    n = int(input('Increments along length ? '))
-    option = int(input('0:Plane strain or 1:Plane stress ? '))
-    E = int(input('Elasticity modulus ? '))
-    nu = float(input('Poisson\'s ratio ? '))
-    t = float(input('Element thickness ? '))
+    h = float(input('Height of spring? '))
+    l = float(input('Half the Length of spring? '))
+    t = float(input('Width of the spring? '))
+    m = int(input('Increments along height? '))
+    n = int(input('Increments along length? '))
+    option = int(input('0:Plane strain or 1:Plane stress? '))
+    E = int(input('Elasticity modulus? '))
+    nu = float(input('Poisson\'s ratio? '))
     load_opt = 0
     V0 = float(input('Magnitude of total shear force at spring centre? '))
     filen = raw_input('Write output to which file ? ')
@@ -168,7 +168,7 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t,
         c_node = (3 * m + 2) * n + (i + 1)
         fid.write('%5d 2 %20.15f \n' % tuple([c_node, forces[i]]))
     fid.write('Number_of_load_increments \n')
-    fid.write(' 10 \n')
+    fid.write(' 30 \n')
     fid.write('Number_of_MPCs \n')
     fid.write('  0 \n')
     fid.close()
