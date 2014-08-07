@@ -1,14 +1,13 @@
 def mesh_inputs():
 
-    import math
     V0 = 0
     R = 0
     Mag = 0
     RadD = 0
 
-    h = float(input('Height of spring? '))
+    h = float(input('Thickness of spring? '))
     l = float(input('Half the Length of spring? '))
-    t = float(input('Width of the spring? '))
+    t = float(input('Breadth of the spring? '))
     m = int(input('Increments along height? '))
     n = int(input('Increments along length? '))
     option = int(input('0:Plane strain or 1:Plane stress? '))
@@ -16,8 +15,9 @@ def mesh_inputs():
     nu = float(input('Poisson\'s ratio? '))
     load_opt = 0
     V0 = float(input('Magnitude of total shear force at spring centre? '))
+    ninc = int(input('Number of Load Increments? '))
     filen = raw_input('Write output to which file ? ')
-    return h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen
+    return h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, ninc, filen
 
 
 def node_coord_displ(h, l, m, n, load_opt, R):
@@ -134,14 +134,14 @@ def nodal_forces(h, m, V0, load_opt, coord, R, Mag, RadD):
 #    return forces, forcesb
 
 
-def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t,
- load_opt, m, DispMat, displ, LoadMat, n, forces, forcesb):
+def mesh_output_writer(h, filen, node, coord, el, option, elnode, E, nu, t,
+ load_opt, m, DispMat, displ, LoadMat, n, forces, forcesb, ninc):
 
     import pylab as pl
     filen = filen + '.inp'
     fid = open(filen, 'w')
     fid.write("Number_of_nodes \n")
-    fid.write("%5f \n" % node)
+    fid.write("%5d \n" % node)
     fid.write("Nodal_coordinates \n")
     for i in range(node):
         fid.write("%f %f %f \n" % tuple(coord[i]))
@@ -155,12 +155,11 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t,
     fid.write('Material_properties \n')
     fid.write('%f %f %f \n' % tuple([E, nu, t]))
     fid.write('Number_of_prescribed_displacements \n')
-    fid.write('%5d \n' % (2 * m + 3 + int(len(DispMat))))
+    fid.write('%5d \n' % (2 * m + 2 + int(len(DispMat))))
     fid.write('Prescribed_displacements \n')
     for i in range(node - (2 * m + 1) + 1, node + 1):
         fid.write('%5d 1 0.0 \n' % int(i))
-    fid.write('1 2 0.0 \n')
-    fid.write('1 1 0.0 \n')
+    fid.write('  1 2 0.0 \n')
     fid.write('Number_of_nodal_loads \n')
     fid.write('%5d \n' % (2 * m + 1))
     fid.write('Nodal_loads \n')
@@ -168,9 +167,15 @@ def mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t,
         c_node = (3 * m + 2) * n + (i + 1)
         fid.write('%5d 2 %20.15f \n' % tuple([c_node, forces[i]]))
     fid.write('Number_of_load_increments \n')
-    fid.write(' 30 \n')
+    fid.write('%5d \n' % ninc)
     fid.write('Number_of_MPCs \n')
     fid.write('  0 \n')
+    fid.write('Number_of_height_increments \n')
+    fid.write('%5d \n' % m)
+    fid.write('Number_of_length_increments \n')
+    fid.write('%5d \n' % n)
+    fid.write('Spring_thickness \n')
+    fid.write('%5f \n' % h)
     fid.close()
 
     pl.figure(1)

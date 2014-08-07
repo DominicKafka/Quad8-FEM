@@ -6,6 +6,7 @@ Created on Mon Mar 31 09:39:32 2014
 """
 import math
 import numpy as np
+import pylab as pl
 from scipy.sparse import coo_matrix
 from solver_utils import read_input_file
 from solver_utils import Quad8_Res_and_Tangent
@@ -47,14 +48,14 @@ print 'Welcome to the Quad-8 Finite Element Program'
 
 #filename = raw_input('Input filename (without extension) ? ')
 #print filename
-case = 'leaf2by20_30inc'
+case = 'spring2by20_30inc'
 
 #check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
 
 filename = case + '.inp'
 ([ndcoor, nodes, coor, plane, elnodes, elas, pois, t,
-displ, cload, nloadinc, mdof, sdof]) = read_input_file(filename)
+displ, cload, nloadinc, m, n, thickness, mdof, sdof]) = read_input_file(filename)
 
 nnodes = len(ndcoor)
 nelem = len(elnodes)
@@ -73,7 +74,7 @@ dL_max = math.sqrt(dx_max ** 2 + dy_max ** 2)
 
 #GraphOpt=1: graphical display of results and text based output files
 #GraphOpt=0: only text based output files
-GraphOpt = 1
+GraphOpt = 0
 
 # Find prescribed (pdof) and free (fdof) degrees of freedom
 # FIXME: the next line assumes 2d
@@ -135,13 +136,27 @@ AlldUNrm = []
 All_iter = []
 All_soln = []
 iter_load = 0
-Force = []
-delta = []
+Force = [0]
+Fadd = 0
+delta = [0]
+skiprec = 0
+
+# Total force
+Ftot = 0
+for h in range(len(cload)):
+    Ftot = Ftot + np.absolute(cload[h, 2])
+Finc = float(Ftot) / nloadinc
 
 #Support coordinates
-ysupdisp = -0.0021599334817
-ysup = ysupdisp - 0.003  # half the thickness
-xsup = 0.0464038485317
+basenode = 0
+supcount = 1
+
+xsupdisps = [0, 0.0464038485317, 0.0739580928548]
+ysupdisps = [0, -0.0021599334817, -0.0048458681424]
+ysupcoords = np.zeros([len(ysupdisps), 1])
+for j in range(len(ysupdisps)):
+    ysupcoords[j] = ysupdisps[j] - 0.5 * thickness
+xsupcoords = xsupdisps
 
 while iter_load < nloadinc:
     print '---------------------------------------------------------------'
@@ -183,7 +198,6 @@ while iter_load < nloadinc:
             U_el = np.matrix(U[pg], float).T
             XY = np.matrix([X, Y]).T
 
-
             if ElType == 'q4':
                 [El_res, k_elem, El_stress, El_strain] = Quad4_Res_and_Tangent(
                     XY, U_el, matC, t)
@@ -209,24 +223,6 @@ while iter_load < nloadinc:
             k_elem = np.matrix(k_elem.flatten()).T
             stiff_vec[k, 0] = k_elem[0:TotKvec, 0]
 
-            #if (i == 4) and (itera == 1) and (iter_load == 0):
-                #check = checker.build('nelemloop.mat')
-                #check('shape_row_vec', np.shape(row_vec))
-                #check('shape_col_vec', np.shape(col_vec))
-                #check('shape_stiff_vec', np.shape(stiff_vec))
-                ##check('row_vec', row_vec)  # gives 'memory error'
-                ##check('col_vec', col_vec)  # gives 'memory error'
-                ##check('k_elem', k_elem)  # gives 'memory error'
-                ##check('stiff_vec', stiff_vec) # gives 'memory error'
-                ##check('some_stiff_vec', some_stiff_vec.T)
-                #gives error though identical
-                #check('U_el', U_el)
-                #check('XY', XY)
-                #check('stress', stress)
-                #check('strain', strain)
-                #check('Residual', Residual)
-            # End of main loop over elements
-
         # Assemble k_global from vectors
         k_global = coo_matrix((stiff_vec.T.tolist()[0], (row_vec.T.tolist()[0],
              col_vec.T.tolist()[0])), shape=(2 * nnodes, 2 * nnodes))
@@ -243,10 +239,6 @@ while iter_load < nloadinc:
             bob = F_ext[pos, 0]
             ans = F_ext[pos, 0] + LoadFac[iter_load] * cload[i, 2]
             F_ext[pos, 0] = ans[0, 0]
-
-            #if (i == 4) and (itera == 1) and (iter_load == 0):
-                #check = checker.build('ncloadloop.mat')
-                #check('F_ext', F_ext.T)
 
         # Subtract internal nodal loads
         F = Residual - F_ext
@@ -305,18 +297,6 @@ while iter_load < nloadinc:
         AllResNrm.append(ResNrm)
         AlldUNrm.append(dUNrm)
 
-        #if (itera == 1) and (iter_load == 0):
-            #check = checker.build('bigloop.mat')
-            #check('F', F.T)
-            #check('ResNrm', ResNrm)
-            ##check('k_global', k_global)  # KeyError: 'k_global'
-            #check('Kaa', Kaa)
-            #check('Pa', Pa.T)
-            #check('Kff', Kff)
-            #check('Pf', Pf.T)
-            #check('deltaUf', deltaUf.T)
-            #check('U', U.T)
-
     # Get support reactions
     Fp = F[pdof]
     print Fp
@@ -334,33 +314,35 @@ while iter_load < nloadinc:
     contact = 0
     gapsup = 0
     gapnode = 0
-    jump1 = (5)  # here
-    jump2 = (3)  # here
+    jump1 = (2 * m + 1)  # here
+    jump2 = (m + 1)  # here
     node1 = 0
     node2 = jump1
     switch1 = 0
     dcoor = coor + np.c_[U[0:2 * nnodes:2], U[1:2 * nnodes:2]]
 
     Uptemp = []
+    Fptemp = []
 
     #calculate jumps with m and n not 8,5 and 3
-    while (node2 <= nnodes - 1) and (xfound == 0):
+    while (node2 <= nnodes - 1) and (xfound == 0) and (supcount < len(xsupcoords)):
 
-        gapsup = xsup - dcoor[node1, 0]
-        #print 'gapsup ' + str(gapsup)
+        gapsup = xsupcoords[supcount] - dcoor[node1, 0]
+        #gapsup = supports[supportcount + 1,0] - dcoor[node1, 0]
         gapnode = (dcoor[node2, 0] - dcoor[node1, 0])
-        #print 'gapnode ' + str(gapnode)
         if gapsup <= 0.5 * gapnode:
             xscheck = dcoor[node1, 0]
             xfound = 1
-            clearance = dcoor[node1, 1] - ysup
+            clearance = dcoor[node1, 1] - ysupcoords[supcount]
+            #clearance = dcoor[node1, 1] - ysup
             contnode = node1
             print 'align at node ' + str(node1)
             print clearance
-        if gapsup <= gapnode:
+        elif gapsup <= gapnode:
             xscheck = dcoor[node2, 0]
             xfound = 1
-            clearance = dcoor[node2, 1] - ysup
+            #clearance = dcoor[node2, 1] - ysup
+            clearance = dcoor[node2, 1] - ysupcoords[supcount]
             contnode = node2
             print 'aligned at node ' + str(node2)
             print 'clearance ' + str(clearance)
@@ -369,13 +351,9 @@ while iter_load < nloadinc:
             if  clearance < 0:
                 contact = 1
                 print 'contact'
-                iter_load = iter_load - 1
+
             else:
                 print 'no contact'
-
-        #if dof[node1, 1] < 0:
-         #   if node1 == 0:
-          #      if Fp[]
 
         if switch1 == 0:
             node1 = node2
@@ -385,26 +363,36 @@ while iter_load < nloadinc:
             node1 = node2
             node2 = node1 + jump1
             switch1 = 0
-        #print node1
-        #print node2
-    #print node
 
+    # Check whether lift-off has occurred and change degrees of freedom
+    if Fp[0, 0] < 0:
+        dof[basenode, 1] = 1
+        print 'lift-off'
+        print dof
+        for i in range(len(Up) - 1):
+            Uptemp.append(Up[i + 1, 0])
+        Up = np.matrix(Uptemp).T
+        print Up
+        pdof = np.flatnonzero(dof == 0)
+        fdof = np.flatnonzero(dof != 0)
+        fdof = np.setdiff1d(fdof, mdof)
+        fdof = np.setdiff1d(fdof, sdof)
+        print pdof
+        basenode = contnode
+        supcount = supcount + 1
+        skiprec = 1
+
+    # Change degrees of freedom if contact has occured
     if contact == 1:
-        #change dofs
-        # Find prescribed (pdof) and free (fdof) degrees of freedom
-        dof[contnode, 0] = 0
         dof[contnode, 1] = 0
         print dof
-        for i in range(len(Up) + 2):
-            if i < 2:
+        for i in range(len(Up) + 1):
+            if i < 1:
                 Uptemp.append(Up[i, 0])
-            elif i == 2:
-                Uptemp.append(U[2 * contnode, 0])
-            elif i == 3:
-                Uptemp.append(ysupdisp)
+            elif i == 1:
+                Uptemp.append(ysupdisps[supcount])
             else:
-                Uptemp.append(Up[i - 2, 0])
-        print ysupdisp
+                Uptemp.append(Up[i - 1, 0])
         print U[2 * contnode + 1, 0]
         Up = np.matrix(Uptemp).T
         print Up
@@ -413,15 +401,17 @@ while iter_load < nloadinc:
         fdof = np.setdiff1d(fdof, mdof)
         fdof = np.setdiff1d(fdof, sdof)
         print pdof
+        skiprec = 1
 
-    #if liftoff == 1:
-        #change dofs
+    if skiprec == 1:
+        skiprec = 0
+    else:
+        Fadd = Fadd + Finc
+        Force.append(Fadd)
+        delta.append(np.absolute(U[len(U) - 1, 0]))
+        iter_load = iter_load + 1
 
-    #Force.append()
-    #delta.append(U[len(U) - 2 * (2 * m + 1)])
-    iter_load = iter_load + 1
-
-
+print U
 tic = time.time()
 #check = checker.build('Beam2by20.mat')
 
@@ -448,3 +438,7 @@ print 'Done writing output                 : ', finish, ' seconds.'
 if GraphOpt:
     graphs(nnodes, coor, nelem, elnodes,
      StressNode, U, VonMises, Tresca, nloadinc, All_soln)
+
+# Plot force Displacement curve
+pl.plot(delta, Force)
+pl.show()

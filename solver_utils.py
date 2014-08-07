@@ -41,9 +41,11 @@ def read_input_file(filename):
                       'Number_of_nodal_loads',
                       'Number_of_load_increments',
                       'Number_of_MPCs',
+                      'Number_of_height_increments',
+                      'Number_of_length_increments',
                       ]
 
-    nnodes, nelem, plane, ndispl, ncload, nloadinc, nMPC = (
+    nnodes, nelem, plane, ndispl, ncload, nloadinc, nMPC, m, n = (
         [int(section[s][0][0]) for s in scalarsections])
     # TODO: plane should be of type bool
 
@@ -63,6 +65,7 @@ def read_input_file(filename):
     coor = ndcoor[:, 1:]
 
     [[elas, pois, t]] = section['Material_properties']
+    thickness = section['Spring_thickness'][0][0]
 
     MasterDOF = []
     SlaveDOF = []
@@ -78,7 +81,7 @@ def read_input_file(filename):
     (logging.info
     ('Done reading input file {} in {} seconds'.format(filename, time)))
     return (ndcoor, nodes, coor, plane, elnodes, elas, pois, t, displ, cload,
-         nloadinc, MasterDOF, SlaveDOF)
+         nloadinc, m, n, thickness, MasterDOF, SlaveDOF)
 
 
 def B_Quad8(xi, eta, X, NL_flag):

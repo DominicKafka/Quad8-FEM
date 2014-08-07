@@ -10,12 +10,12 @@ from mesh_utils import mesh_output_writer
 from mesh_utils import node_coord_displ
 from mesh_utils import nodal_forces
 
-h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, filen = mesh_inputs()
+h, l, m, n, option, E, nu, t, load_opt, V0, R, Mag, RadD, ninc, filen = mesh_inputs()
 
 coord, displ, elnode, node, el = node_coord_displ(h, l, m, n, load_opt, R)
 
 forces, forcesb, DispMat, LoadMat = (nodal_forces(h, m, V0, load_opt, coord,
  R, Mag, RadD))
 
-mesh_output_writer(filen, node, coord, el, option, elnode, E, nu, t, load_opt,
-     m, DispMat, displ, LoadMat, n, forces, forcesb)
+mesh_output_writer(h, filen, node, coord, el, option, elnode, E, nu, t, load_opt,
+     m, DispMat, displ, LoadMat, n, forces, forcesb, ninc)
