@@ -15,10 +15,10 @@ from solver_utils import calc_von_mises
 from solver_utils import calc_tresca
 from solver_utils import write_output_file
 from solver_utils import graphs
+from solver_utils import linear_estimation
+from solver_utils import springtest8
 from block_diag import block_diag
-
 import time
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -48,7 +48,7 @@ print 'Welcome to the Quad-8 Finite Element Program'
 
 #filename = raw_input('Input filename (without extension) ? ')
 #print filename
-case = 'spring2by20_30inc'
+case = 'spring4by100_50inc'
 
 #check = checker.build(case + '.mat')
 #check = checker.build(case + '.inp')
@@ -75,6 +75,12 @@ dL_max = math.sqrt(dx_max ** 2 + dy_max ** 2)
 #GraphOpt=1: graphical display of results and text based output files
 #GraphOpt=0: only text based output files
 GraphOpt = 0
+
+#ForceDispVis=1 generates the force-deflection curves for the FEA, the linear
+# and the experimental setup
+#ForceDispVis=2 only generates the FEA graph
+#ForceDispVis=0 generates ne graphs
+ForceDispVis = 1
 
 # Find prescribed (pdof) and free (fdof) degrees of freedom
 # FIXME: the next line assumes 2d
@@ -148,16 +154,20 @@ for h in range(len(cload)):
 Finc = float(Ftot) / nloadinc
 
 #Support coordinates
-basenode = 0
-supcount = 1
-
 xsupdisps = [0, 0.0464038485317, 0.0739580928548]
 ysupdisps = [0, -0.0021599334817, -0.0048458681424]
 ysupcoords = np.zeros([len(ysupdisps), 1])
+
+supcount = 1
+liftcount = 0
+contnodes = [0]
+basenode = contnodes[0]
+
 for j in range(len(ysupdisps)):
     ysupcoords[j] = ysupdisps[j] - 0.5 * thickness
 xsupcoords = xsupdisps
 
+# Beginning of Main Loop
 while iter_load < nloadinc:
     print '---------------------------------------------------------------'
     print '                      Load increment ' + str(iter_load + 1)
@@ -336,15 +346,15 @@ while iter_load < nloadinc:
             clearance = dcoor[node1, 1] - ysupcoords[supcount]
             #clearance = dcoor[node1, 1] - ysup
             contnode = node1
-            print 'align at node ' + str(node1)
-            print clearance
-        elif gapsup <= gapnode:
+            print 'align at node ' + str(node1 + 1)
+            #print clearance
+        elif gapsup < gapnode:
             xscheck = dcoor[node2, 0]
             xfound = 1
             #clearance = dcoor[node2, 1] - ysup
             clearance = dcoor[node2, 1] - ysupcoords[supcount]
             contnode = node2
-            print 'aligned at node ' + str(node2)
+            print 'aligned at node ' + str(node2 + 1)
             print 'clearance ' + str(clearance)
 
         if xfound == 1:
@@ -354,6 +364,10 @@ while iter_load < nloadinc:
 
             else:
                 print 'no contact'
+                print dcoor[node1, 0]
+                print dcoor[node1, 1]
+                print dcoor[node2, 0]
+                print dcoor[node2, 1]
 
         if switch1 == 0:
             node1 = node2
@@ -364,28 +378,11 @@ while iter_load < nloadinc:
             node2 = node1 + jump1
             switch1 = 0
 
-    # Check whether lift-off has occurred and change degrees of freedom
-    if Fp[0, 0] < 0:
-        dof[basenode, 1] = 1
-        print 'lift-off'
-        print dof
-        for i in range(len(Up) - 1):
-            Uptemp.append(Up[i + 1, 0])
-        Up = np.matrix(Uptemp).T
-        print Up
-        pdof = np.flatnonzero(dof == 0)
-        fdof = np.flatnonzero(dof != 0)
-        fdof = np.setdiff1d(fdof, mdof)
-        fdof = np.setdiff1d(fdof, sdof)
-        print pdof
-        basenode = contnode
-        supcount = supcount + 1
-        skiprec = 1
-
     # Change degrees of freedom if contact has occured
     if contact == 1:
         dof[contnode, 1] = 0
-        print dof
+        contnodes.append(contnode)
+        #print dof
         for i in range(len(Up) + 1):
             if i < 1:
                 Uptemp.append(Up[i, 0])
@@ -393,14 +390,33 @@ while iter_load < nloadinc:
                 Uptemp.append(ysupdisps[supcount])
             else:
                 Uptemp.append(Up[i - 1, 0])
-        print U[2 * contnode + 1, 0]
+        #print U[2 * contnode + 1, 0]
         Up = np.matrix(Uptemp).T
-        print Up
+        #print Up
         pdof = np.flatnonzero(dof == 0)
         fdof = np.flatnonzero(dof != 0)
         fdof = np.setdiff1d(fdof, mdof)
         fdof = np.setdiff1d(fdof, sdof)
-        print pdof
+        #print pdof
+        supcount = supcount + 1
+        skiprec = 1
+
+    # Check whether lift-off has occurred and change degrees of freedom
+    if Fp[0, 0] < 0:
+        dof[basenode, 1] = 1
+        print 'lift-off'
+        #print dof
+        for i in range(len(Up) - 1):
+            Uptemp.append(Up[i + 1, 0])
+        Up = np.matrix(Uptemp).T
+        #print Up
+        pdof = np.flatnonzero(dof == 0)
+        fdof = np.flatnonzero(dof != 0)
+        fdof = np.setdiff1d(fdof, mdof)
+        fdof = np.setdiff1d(fdof, sdof)
+        #print pdof
+        liftcount = liftcount + 1
+        basenode = contnodes[liftcount]
         skiprec = 1
 
     if skiprec == 1:
@@ -411,7 +427,7 @@ while iter_load < nloadinc:
         delta.append(np.absolute(U[len(U) - 1, 0]))
         iter_load = iter_load + 1
 
-print U
+#print U
 tic = time.time()
 #check = checker.build('Beam2by20.mat')
 
@@ -439,6 +455,30 @@ if GraphOpt:
     graphs(nnodes, coor, nelem, elnodes,
      StressNode, U, VonMises, Tresca, nloadinc, All_soln)
 
-# Plot force Displacement curve
-pl.plot(delta, Force)
-pl.show()
+if ForceDispVis:
+    # Plot force Displacement curve
+    pl.figure(1)
+    pl.plot(delta, Force)
+    pl.xlabel('Displacement')
+    pl.ylabel('Force')
+
+    [disp1, Fx1, disp2, Fx2, disp3, Fx3, disp122, Fx1212, disp12, Fx121] = linear_estimation()
+    pl.figure(2)
+    pl.plot(disp1, Fx1, disp2, Fx2, disp3, Fx3, disp122, Fx1212, disp12, Fx121)
+    pl.xlabel('Displacement [m]')
+    pl.ylabel('Force [F]')
+
+    [displacement1, Force1] = springtest8()
+    pl.figure()
+    pl.plot(displacement1, Force1)
+    pl.xlim([0, 0.03])
+
+    pl.figure(4)
+    Forceplot = [x * 2 for x in Force]
+    pl.plot(disp1, Fx1, disp2, Fx2, disp3, Fx3, disp122, Fx1212, disp12, Fx121,
+         delta, Forceplot, displacement1, Force1)
+    pl.xlim([0, 0.03])
+    pl.xlabel('Displacement [m]')
+    pl.ylabel('Force [F]')
+
+    pl.show()

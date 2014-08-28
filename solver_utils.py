@@ -347,3 +347,177 @@ def graphs(nnodes, coor, nelem, elnodes, StressNode, U,
                     dcoor[:, 0], dcoor[:, 1], 'r.')
             pl.axis('equal')
             pl.show()
+
+
+def linear_estimation():
+
+    import pylab as pl
+    import numpy as np
+
+    l = 0.64
+    b = 0.045
+    h = 0.006
+    E = 210000000000.
+    d1 = 0.01
+    d2 = 0.02
+    d3 = 0.03
+    factor1 = 1.6
+    factor2 = 2.2
+
+
+    I = float(1./12*b*h**3)
+    knat = ((48.0*E*I)/(l**3))
+    smodulus = E * I
+
+    k1 = knat*factor1
+    k2 = knat*factor2
+
+    # Natural Support
+    disp1 = np.linspace(0, d1, 10)
+    Fx1 = knat * disp1
+    F1 = d1*knat
+    stress1 = ((0.5*F1*0.5*l*0.5*h)/I)/1000000
+
+
+    # First Point
+    l1 = ((48.*E*I)/k1)**(1./3.)
+    x1 = 0.5*l-0.5*l1
+    y1 = (F1*x1)/(48.*E*I)*(4.*x1**2-3.*l**2)
+
+    Fcoeff = (((l1 **2) * x1)/(16 * E * I))
+    Facoeff = (((x1 ** 2) * l1)/(2. * E * I))+((x1 ** 3) / (3. * E * I))
+    Fa1 = ((-y1))/(Facoeff)
+    Fcoeff2 = Fcoeff/Facoeff
+    Fcoeff3 = (l1**3)/(48*E*I)
+    gencoeff = (x1*(l1**2))/(8.*E*I)
+    Fcoeff4 = Fcoeff2*gencoeff
+    const = Fa1 * gencoeff
+    Fcoeff5 = Fcoeff3-Fcoeff4
+    Fconst = const/Fcoeff5
+
+    delta1 = (y1-(Fconst*Fcoeff5)-(y1*k1*Fcoeff5))/((k1*Fcoeff5)-1)
+    disp12 = np.linspace(d1, delta1, 10)
+
+    Fx121 = (disp12+y1)/Fcoeff5 -Fconst
+
+    Fa = Fa1-((k1*(delta1+y1))*Fcoeff2)
+    Faint1 = Fa1-((knat*(0.01))*Fcoeff2)
+
+    # Line 2
+    disp2 = np.linspace(delta1, d2, 10)
+    #disp2 = np.linspace(0, d2, 10)
+    Fx2 = k1 * (disp2-(-y1))
+    F2 = k1 * (d2-(-y1))
+    stress2 = ((0.5*F2*0.5*l1*0.5*h)/I)/1000000
+
+
+    # Second Point
+    l2 = ((48.*E*I)/k2)**(1./3.)
+    x2 = 0.5*l-0.5*l2
+    y2 = y1 + (F2*(x2-x1))/(48.*E*I)*(4.*(x2-x1)**2-3.*l1**2)
+    ymax2 = y1 + (-1*(F2*l2**3.)/(48.*E*I))
+
+    x12 = x2-x1
+    F2coeff = (((l2 **2) * x12)/(16 * E * I))
+    Facoeff2 = (((x12 ** 2) * l2)/(2. * E * I))+((x12 ** 3) / (3. * E * I))
+    Fa12 = ((-y2-(-y1)))/(Facoeff2)
+    Fcoeff22 = F2coeff/Facoeff2
+    Fcoeff32 = (l2**3)/(48*E*I)
+    gencoeff2 = (x12*(l2**2))/(8.*E*I)
+    Fcoeff42 = Fcoeff22*gencoeff2
+    const2 = Fa12 * gencoeff2
+    Fcoeff52 = Fcoeff32-Fcoeff42
+    Fconst2 = const2/Fcoeff52
+
+    delta12 = (y2-(Fconst2*Fcoeff52)-(y2*k2*Fcoeff52))/((k2*Fcoeff52)-1)
+    disp122 = np.linspace(d2, delta12, 10)
+
+    Fx1212 = (disp122+y2)/Fcoeff52 -Fconst2
+
+    Fa2 = Fa12-((k2*(delta12+y2))*Fcoeff22)
+    Faint12 = Fa12-((k1*(0.02+y1))*Fcoeff22)
+
+
+    disp3 = np.linspace(delta12, d3, 10)
+    #disp3 = np.linspace(0, d3, 10)
+    Fx3 = k2 * (disp3+y2)
+    F3 = k2 * (d3+y2)
+    stress3 = ((0.5*F3*0.5*l2*0.5*h)/I)/1000000
+
+
+    print 'Moment of inertia:'+str(I)
+    print 'Stress1: '+str(stress1)+' MPa'
+    print 'x1: '+str(x1)+' m'
+    print 'y1: '+str(y1)+' m'
+    print l2
+    print x2
+    print 'Stress2: '+str(stress2)+' MPa'
+    print 'x2: '+str(x2)+' m'
+    print 'y2: '+str(y2)+' m'
+    print 'Stress3: '+str(stress3)+' MPa'
+
+    return disp1, Fx1, disp2, Fx2, disp3, Fx3, disp122, Fx1212, disp12, Fx121
+
+
+def springtest8():
+    import csv
+    import numpy as np
+    import pylab as pl
+
+    displacement = []
+    Force = []
+    displacement1 = []
+    Force1 = []
+    absdisp = []
+    rowcount = 0
+    absoluted = 0
+    absoluteF = 0
+    absF = []
+    LCfactor = 2 * 9.81 * 1000 / 10
+    displacement2 = []
+    Force2 = []
+    displacement3 = []
+    Force3 = []
+
+    reader = csv.reader(open("springtest7.csv", "rb"), delimiter=',')
+    x = list(reader)
+    result = np.array(x)
+
+    [x, y] = np.shape(result)
+    print 'number of rows ' + str(x)
+    print 'number of columns ' + str(y)
+
+    for i in range(x):
+        if i > 0:
+            displacement.append(result[i, 1])
+            Force.append(result[i, 4])
+
+
+    maxdisp = max(displacement)
+    mindisp = min(displacement)
+
+    maxF = max(Force)
+    minF = min(Force)
+    # print Force
+
+
+    for k in range(x - 1):
+        absoluted = float(maxdisp) - float(displacement[k])
+        absdisp.append(absoluted)
+        absoluteF = (float(minF) - float(Force[k])) * LCfactor
+        absF.append(absoluteF)
+
+    for j in range(640):
+        if j > 60:
+            displacement1.append(absdisp[j])
+            Force1.append(absF[j])
+
+    print 'maxdisp ' + str(maxdisp)
+    print 'mindisp ' + str(mindisp)
+    print 'maxF ' + str(maxF)
+    print 'minF ' + str(minF)
+    displacement1 = [x * 0.001 for x in displacement1]
+    displacement1 = [x + 0.0035 for x in displacement1]
+    Force1 = [x + 130 for x in Force1]
+
+    return displacement1, Force1
